@@ -1,0 +1,36 @@
+export enum Page {
+  Landing = 'LANDING',
+  Explore = 'EXPLORE',
+  Watch = 'WATCH',
+  Upload = 'UPLOAD',
+  Dashboard = 'DASHBOARD',
+  Profile = 'PROFILE',
+}
+
+export interface NavigationProps {
+  onNavigate: (page: Page) => void;
+}
+
+export interface ContentCardData {
+  id: number;
+  creatorAvatar: string;
+  creatorName: string;
+  thumbnail: string;
+  price: number;
+  likes: number;
+  isVerified: boolean;
+  isHD: boolean;
+  isVR: boolean;
+  category: string;
+}
+
+export interface ChartData {
+    name: string;
+    earnings: number;
+}
+
+export interface TokenBalance {
+    symbol: 'LIBERTY' | 'ETH' | 'USDC';
+    balance: number;
+    usdValue: number;
+}
