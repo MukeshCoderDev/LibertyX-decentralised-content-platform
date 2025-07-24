@@ -7,7 +7,7 @@ export interface TokenBalance {
   address?: string;
 }
 
-export interface NetworkConfig {
+export interface Chain {
   chainId: number;
   name: string;
   rpcUrl: string;
@@ -25,6 +25,7 @@ export interface NetworkConfig {
     subscriptionManager: string;
     nftAccess: string;
     libertyDAO: string;
+    tipJar: string; // Added TipJar contract
   };
 }
 
@@ -39,6 +40,22 @@ export interface WalletContextType {
   switchNetwork: (chainId: number) => Promise<void>;
   signMessage: (message: string) => Promise<string>;
   error: string | null;
+}
+
+export interface ContractManager {
+  contracts: {
+    libertyToken: any; // ethers.Contract;
+    creatorRegistry: any; // ethers.Contract;
+    contentRegistry: any; // ethers.Contract;
+    revenueSplitter: any; // ethers.Contract;
+    subscriptionManager: any; // ethers.Contract;
+    nftAccess: any; // ethers.Contract;
+    libertyDAO: any; // ethers.Contract;
+    tipJar: any; // Added TipJar contract
+  };
+  getContract: (name: keyof Chain['contracts'], chainId: number) => any; // ethers.Contract;
+  executeTransaction: (contractName: keyof Chain['contracts'], method: string, params: any[]) => Promise<TransactionResult>;
+  listenToEvents: (contractName: keyof Chain['contracts'], eventName: string, callback: Function) => void;
 }
 
 export interface TransactionResult {

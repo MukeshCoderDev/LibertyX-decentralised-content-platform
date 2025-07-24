@@ -1,8 +1,10 @@
 import React from 'react';
-import { Page, NavigationProps, TokenBalance } from '../types';
+import { Page, NavigationProps } from '../types';
 import Logo from './icons/Logo';
 import { useWallet, WalletType } from '../lib/WalletProvider';
 import EthIcon from './icons/EthIcon';
+import { SUPPORTED_CHAINS } from '../lib/blockchainConfig';
+import { Chain } from '../lib/web3-types';
 
 interface HeaderProps extends NavigationProps {
     currentPage: Page;
@@ -15,38 +17,22 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
         { page: Page.Dashboard, label: 'Dashboard' },
         { page: Page.Profile, label: 'Profile' },
     ];
-const { account, chainId, balance, isConnected, isConnecting, connect, disconnect, switchNetwork } = useWallet();
+const { account, chainId, currentChain, balance, isConnected, isConnecting, connect, disconnect, switchNetwork, error } = useWallet();
 
 const truncateAddress = (address: string | null) => {
     if (!address) return '';
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
 };
 
-const getNetworkName = (id: number | null) => {
-    switch (id) {
-        case 1: return 'Ethereum Mainnet';
-        case 11155111: return 'Sepolia';
-        case 137: return 'Polygon';
-        case 80001: return 'Polygon Mumbai';
-        case 56: return 'BNB Chain';
-        case 97: return 'BNB Testnet';
-        case 42161: return 'Arbitrum';
-        case 421613: return 'Arbitrum Goerli';
-        case 10: return 'Optimism';
-        case 420: return 'Optimism Goerli';
-        case 43114: return 'Avalanche';
-        case 43113: return 'Avalanche Fuji';
-        default: return 'Unknown Network';
-    }
+const getNetworkName = (chain: Chain | undefined | null) => {
+    return chain ? chain.name : 'Unknown Network';
 };
 
-const handleSwitchNetwork = async () => {
-    // For now, hardcode to Sepolia as it's the primary testnet for the project
-    const sepoliaChainId = 11155111;
-    await switchNetwork(sepoliaChainId);
+const handleSwitchNetwork = async (targetChainId: number) => {
+    await switchNetwork(targetChainId);
 };
 
-const ethBalance = balance.find(b => b.symbol === 'ETH');
+const ethBalance = balance.find(b => b.symbol === (currentChain?.nativeCurrency.symbol || 'ETH'));
 
 return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
@@ -71,19 +57,30 @@ return (
                         <>
                             <div className="hidden md:flex items-center space-x-2 bg-card p-2 rounded-lg text-sm">
                                 <span className="text-text-secondary">Network:</span>
-                                <button
-                                    onClick={handleSwitchNetwork}
-                                    className="text-primary hover:underline"
-                                    title="Click to switch to Sepolia"
-                                >
-                                    {getNetworkName(chainId)}
-                                </button>
+                                <div className="relative group">
+                                    <button
+                                        className="text-primary hover:underline"
+                                    >
+                                        {getNetworkName(currentChain)}
+                                    </button>
+                                    <div className="absolute left-0 mt-2 w-48 bg-card border border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                                        {SUPPORTED_CHAINS.map((chain) => (
+                                            <button
+                                                key={chain.chainId}
+                                                onClick={() => handleSwitchNetwork(chain.chainId)}
+                                                className="block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-primary/20"
+                                            >
+                                                {chain.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                                 <span className="text-text-secondary">|</span>
                                 <span className="text-text-secondary">Balance:</span>
                                 {ethBalance && (
                                     <div className="flex items-center">
                                         <EthIcon className="w-4 h-4 mr-1" />
-                                        <span>{parseFloat(ethBalance.amount).toFixed(4)} ETH</span>
+                                        <span>{parseFloat(ethBalance.balance).toFixed(4)} {ethBalance.symbol}</span>
                                     </div>
                                 )}
                                 <span className="text-text-secondary">|</span>
@@ -117,6 +114,11 @@ return (
                 </div>
             </div>
         </div>
+        {error && (
+            <div className="bg-red-800 text-white text-center py-2">
+                Error: {error.message} (Code: {error.code})
+            </div>
+        )}
         {/* Mobile Bottom Nav */}
         <nav className="fixed bottom-0 left-0 right-0 bg-card p-2 flex justify-around md:hidden z-50 border-t border-gray-800">
             {navItems.map(item => (

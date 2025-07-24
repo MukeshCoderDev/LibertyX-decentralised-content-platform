@@ -24,7 +24,7 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "hardhat": "^2.22.5",
+    "hardhat": "^2.26.1",
     "typescript": "~5.7.2",
     "vite": "^6.2.0"
   }

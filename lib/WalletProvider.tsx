@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { TokenBalance, NetworkConfig } from './web3-types';
-import { supportedNetworks } from './networks';
+import { TokenBalance, Chain, WalletError } from './web3-types';
+import { SUPPORTED_CHAINS, getChainByChainId } from './blockchainConfig';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 
@@ -19,6 +19,7 @@ export enum WalletType {
 interface WalletContextType {
   account: string | null;
   chainId: number | null;
+  currentChain: Chain | undefined;
   balance: TokenBalance[];
   isConnected: boolean;
   isConnecting: boolean;
@@ -26,6 +27,7 @@ interface WalletContextType {
   disconnect: () => void;
   switchNetwork: (chainId: number) => Promise<void>;
   signMessage: (message: string) => Promise<string>;
+  error: WalletError | null;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -40,6 +42,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [balance, setBalance] = useState<TokenBalance[]>([]);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
+  const [error, setError] = useState<WalletError | null>(null);
+  const [currentChain, setCurrentChain] = useState<Chain | undefined>(undefined);
 
 
   const connect = useCallback(async (walletType: WalletType) => {
@@ -52,8 +56,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
       } else if (walletType === WalletType.WalletConnect) {
         const wcProvider = new WalletConnectProvider({
-          rpc: supportedNetworks.reduce((acc: { [key: number]: string }, network: NetworkConfig) => {
-            acc[network.chainId] = network.rpcUrl;
+          rpc: SUPPORTED_CHAINS.reduce((acc: { [key: number]: string }, chain: Chain) => {
+            acc[chain.chainId] = chain.rpcUrl;
             return acc;
           }, {}),
           qrcode: true,
@@ -96,41 +100,68 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
         setAccount(address);
         setChainId(currentChainId);
+        setCurrentChain(getChainByChainId(currentChainId));
         setIsConnected(true);
+        setError(null);
 
         // Fetch balance (placeholder for now, will implement proper token balance fetching later)
         const ethBalance = ethers.formatEther(await provider.getBalance(address));
-        setBalance([{ symbol: 'ETH', balance: ethBalance, decimals: 18 }]);
+        setBalance([{ symbol: 'ETH', balance: ethBalance, decimals: 18 }]); // Placeholder, will be dynamic
 
         // Check for supported network
-        if (!supportedNetworks.some(net => net.chainId === currentChainId)) {
-          alert(`Unsupported network detected. Please switch to a supported network like Sepolia.`);
-          // Optionally prompt to switch here
+        if (!getChainByChainId(currentChainId)) {
+          setError({
+            code: 4901, // Custom code for unsupported network
+            message: `Unsupported network detected. Please switch to a supported network.`,
+            type: 'network',
+          });
         }
       }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
+    } catch (err: any) {
+      console.error('Failed to connect wallet:', err);
       setIsConnected(false);
       setAccount(null);
       setChainId(null);
       setBalance([]);
-      alert(`Wallet connection failed: ${(error as Error).message}`);
+      setError({
+        code: err.code || -1,
+        message: err.message || 'An unknown error occurred during connection.',
+        type: 'connection',
+      });
     } finally {
       setIsConnecting(false);
     }
-  }, [supportedNetworks]);
+  }, []);
 
   const disconnect = useCallback(() => {
     setAccount(null);
     setChainId(null);
+    setCurrentChain(undefined);
     setBalance([]);
     setIsConnected(false);
+    setError(null);
     console.log('Wallet disconnected.');
   }, []);
 
   const switchNetwork = useCallback(async (targetChainId: number) => {
+    setError(null); // Clear previous errors
+    const targetChain = getChainByChainId(targetChainId);
+
+    if (!targetChain) {
+      setError({
+        code: 4902, // Custom code for unknown chain
+        message: `Chain with ID ${targetChainId} is not supported.`,
+        type: 'network',
+      });
+      return;
+    }
+
     if (!(window as any).ethereum) {
-      alert('MetaMask is not installed. Please install it to switch networks.');
+      setError({
+        code: -1,
+        message: 'No Ethereum wallet detected. Please install MetaMask or another compatible wallet.',
+        type: 'connection',
+      });
       return;
     }
 
@@ -139,10 +170,40 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${targetChainId.toString(16)}` }],
       });
-      // Network change will be detected by the 'chainChanged' event listener
-    } catch (error) {
-      console.error('Failed to switch network:', error);
-      alert(`Failed to switch network: ${(error as any).message}`);
+      // If switch is successful, chainChanged event will update state
+    } catch (err: any) {
+      console.error('Failed to switch network:', err);
+      if (err.code === 4902) {
+        // Chain not added to wallet, try adding it
+        try {
+          await (window as any).ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: `0x${targetChainId.toString(16)}`,
+                chainName: targetChain.name,
+                rpcUrls: [targetChain.rpcUrl],
+                nativeCurrency: targetChain.nativeCurrency,
+                blockExplorerUrls: [targetChain.blockExplorer],
+              },
+            ],
+          });
+          // If adding is successful, chainChanged event will update state
+        } catch (addError: any) {
+          console.error('Failed to add network:', addError);
+          setError({
+            code: addError.code || -1,
+            message: addError.message || 'Failed to add network to wallet.',
+            type: 'network',
+          });
+        }
+      } else {
+        setError({
+          code: err.code || -1,
+          message: err.message || 'Failed to switch network.',
+          type: 'network',
+        });
+      }
     }
   }, []);
 
@@ -159,9 +220,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       const signer = await provider.getSigner();
       const signature = await signer.signMessage(message);
       return signature;
-    } catch (error) {
-      console.error('Failed to sign message:', error);
-      throw new Error(`Failed to sign message: ${(error as Error).message}`);
+    } catch (err: any) {
+      console.error('Failed to sign message:', err);
+      setError({
+        code: err.code || -1,
+        message: err.message || 'Failed to sign message.',
+        type: 'transaction',
+      });
+      throw err; // Re-throw to allow component to handle
     }
   }, [account, isConnected]);
 
@@ -186,12 +252,17 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     const handleChainChanged = (hexChainId: string) => {
       const newChainId = Number(hexChainId);
       setChainId(newChainId);
-      if (!supportedNetworks.some(net => net.chainId === newChainId)) {
-        alert(`Switched to unsupported network (Chain ID: ${newChainId}). Please switch to a supported network like Sepolia.`);
+      setCurrentChain(getChainByChainId(newChainId));
+      if (!getChainByChainId(newChainId)) {
+        setError({
+          code: 4901,
+          message: `Switched to unsupported network (Chain ID: ${newChainId}). Please switch to a supported network.`,
+          type: 'network',
+        });
+      } else {
+        setError(null); // Clear network error if switched to supported chain
       }
-      // Re-initialize contracts or update UI based on new chainId
     };
-
     if (ethereum) {
       ethereum.on('accountsChanged', handleAccountsChanged);
       ethereum.on('chainChanged', handleChainChanged);
@@ -210,11 +281,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         ethereum.removeListener('chainChanged', handleChainChanged);
       }
     };
-  }, [connect, disconnect, supportedNetworks]);
+  }, [connect, disconnect, account]);
 
   const value = {
     account,
     chainId,
+    currentChain,
     balance,
     isConnected,
     isConnecting,
@@ -222,6 +294,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     disconnect,
     switchNetwork,
     signMessage,
+    error,
   };
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
