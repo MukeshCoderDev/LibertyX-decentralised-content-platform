@@ -30,7 +30,9 @@ export interface ChartData {
 }
 
 export interface TokenBalance {
-    symbol: 'LIBERTY' | 'ETH' | 'USDC';
-    balance: number;
-    usdValue: number;
+    amount: string; // Using string to handle large numbers and decimals
+    token: string;
+    decimals: number;
+    symbol: string;
+    icon?: string;
 }
