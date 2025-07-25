@@ -58,7 +58,7 @@ class ContractManager implements IContractManager {
         }
       }
     }
-    console.log('Contracts initialized:', this.contracts);
+    console.log('Contracts initialized for chain:', this.currentChainId);
   }
 
   public getContract(contractName: keyof Chain['contracts'], chainId: number): any {
@@ -79,6 +79,11 @@ class ContractManager implements IContractManager {
     method: string,
     params: any[]
   ): Promise<TransactionResult> {
+    console.log(`executeTransaction called: ${contractName}.${method}`);
+    console.log('Parameters:', params);
+    console.log('Current chain ID:', this.currentChainId);
+    console.log('Signer available:', !!this.signer);
+    
     if (!this.signer) {
       throw new Error('No signer available for transaction. Please connect a wallet.');
     }
@@ -88,10 +93,30 @@ class ContractManager implements IContractManager {
       throw new Error(`Contract ${contractName} not initialized for chain ${this.currentChainId}.`);
     }
 
+    console.log('Contract address:', contract.target);
+    console.log('Contract method exists:', typeof contract[method] === 'function');
+
     try {
+      // Check if method exists
+      if (typeof contract[method] !== 'function') {
+        throw new Error(`Method ${method} does not exist on contract ${contractName}`);
+      }
+
       console.log(`Executing transaction: ${contractName}.${method}(${params.join(', ')})`);
+      
+      // Estimate gas first
+      try {
+        const gasEstimate = await contract[method].estimateGas(...params);
+        console.log('Gas estimate:', gasEstimate.toString());
+      } catch (gasError) {
+        console.warn('Gas estimation failed:', gasError);
+        // Continue anyway, let the transaction fail if needed
+      }
+
       const transactionResponse: ethers.ContractTransactionResponse = await contract[method](...params);
-      console.log('Transaction sent, hash:', transactionResponse.hash);
+      console.log('Transaction sent successfully!');
+      console.log('Transaction hash:', transactionResponse.hash);
+      console.log('Transaction response:', transactionResponse);
 
       return {
         hash: transactionResponse.hash,
@@ -99,7 +124,29 @@ class ContractManager implements IContractManager {
       };
     } catch (error: any) {
       console.error(`Error executing transaction ${contractName}.${method}:`, error);
-      throw new Error(`Transaction failed: ${error.message || error.reason || 'Unknown error'}`);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        reason: error.reason,
+        data: error.data,
+        stack: error.stack
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = 'Transaction failed: ';
+      if (error.code === 'ACTION_REJECTED' || error.code === 4001) {
+        errorMessage += 'User rejected the transaction';
+      } else if (error.code === 'INSUFFICIENT_FUNDS' || error.code === -32000) {
+        errorMessage += 'Insufficient funds for gas fees';
+      } else if (error.reason) {
+        errorMessage += error.reason;
+      } else if (error.message) {
+        errorMessage += error.message;
+      } else {
+        errorMessage += 'Unknown error';
+      }
+      
+      throw new Error(errorMessage);
     }
   }
 

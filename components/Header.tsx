@@ -103,17 +103,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                             </>
                         ) : ( // If not connected
                           <div className="flex items-center space-x-2">
-                            {/* Show Register as Creator button only if connected, or if we want to allow registration before connecting */}
-                            {/* For now, let's make it appear only when connected, to avoid the chainId error */}
-                            {/* If you want to allow registration before connecting, the form itself needs to handle the "connect wallet" prompt */}
-                            {isConnected && ( // Conditionally render based on connection status
-                              <button
-                                onClick={onOpenRegistrationModal} // Call the prop function
-                                className="px-4 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary-dark transition-colors" // Changed color to primary
-                              >
-                                Register as Creator
-                              </button>
-                            )}
                             <button
                               onClick={() => connect(WalletType.MetaMask)}
                               disabled={isConnecting}
@@ -122,6 +111,16 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                               {isConnecting ? 'Connecting...' : 'Connect Wallet'}
                             </button>
                           </div>
+                        )}
+                        
+                        {/* Register as Creator button - show when connected */}
+                        {isConnected && (
+                          <button
+                            onClick={onOpenRegistrationModal}
+                            className="px-4 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary-dark transition-colors"
+                          >
+                            Register as Creator
+                          </button>
                         )}
                         <div className="md:hidden">
                           {/* Mobile menu button could go here */}
@@ -146,12 +145,20 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                     </button>
                 ))}
                 {isConnected && (
-                    <button
-                        onClick={disconnect}
-                        className="flex flex-col items-center font-satoshi text-xs font-medium transition-colors w-full p-1 rounded-md text-red-400 hover:text-red-200 bg-red-900/20"
-                    >
-                        <span>Disconnect</span>
-                    </button>
+                    <>
+                        <button
+                            onClick={onOpenRegistrationModal}
+                            className="flex flex-col items-center font-satoshi text-xs font-medium transition-colors w-full p-1 rounded-md text-primary hover:text-white bg-primary/10"
+                        >
+                            <span>Register</span>
+                        </button>
+                        <button
+                            onClick={disconnect}
+                            className="flex flex-col items-center font-satoshi text-xs font-medium transition-colors w-full p-1 rounded-md text-red-400 hover:text-red-200 bg-red-900/20"
+                        >
+                            <span>Disconnect</span>
+                        </button>
+                    </>
                 )}
             </nav>
         </header>

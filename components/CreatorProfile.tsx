@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useCreatorRegistry } from '../hooks/useCreatorRegistry';
 import Button from './ui/Button';
+import CreatorRegistrationForm from './CreatorRegistrationForm';
+import SimpleRegistrationForm from './SimpleRegistrationForm';
 import { Link } from 'react-router-dom'; // Assuming react-router-dom for navigation
 
 interface CreatorProfileProps {
@@ -13,6 +15,7 @@ const CreatorProfile: React.FC<CreatorProfileProps> = ({ creatorAddress }) => {
   const targetAddress = creatorAddress || account; // Use prop address or connected account
   const { creatorProfile, isLoading, error, getCreatorProfile, refreshProfile } = useCreatorRegistry();
   const hasCalledRef = useRef<string | null>(null);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
   console.log('CreatorProfile render - isLoading:', isLoading, 'error:', error, 'creatorProfile:', creatorProfile);
   console.log('CreatorProfile render - creatorProfile.isCreator:', creatorProfile?.isCreator);
@@ -24,7 +27,7 @@ const CreatorProfile: React.FC<CreatorProfileProps> = ({ creatorAddress }) => {
       console.log('CreatorProfile: Calling getCreatorProfile for new address');
       getCreatorProfile(targetAddress);
     }
-  }, [targetAddress, isLoading]); // Add isLoading to prevent multiple calls
+  }, [targetAddress]);
 
   if (!isConnected && !creatorAddress) {
     console.log('CreatorProfile: Not connected and no creatorAddress prop.');
@@ -96,7 +99,7 @@ const CreatorProfile: React.FC<CreatorProfileProps> = ({ creatorAddress }) => {
           {isOwnProfile && (
             <div className="space-y-3">
               <Button 
-                onClick={() => console.log('Open registration modal')}
+                onClick={() => setShowRegistrationForm(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
               >
                 Register as Creator
@@ -111,8 +114,31 @@ const CreatorProfile: React.FC<CreatorProfileProps> = ({ creatorAddress }) => {
     );
   }
 
+  // Handle successful registration
+  const handleRegistrationSuccess = () => {
+    setShowRegistrationForm(false);
+    // Refresh the profile to show the updated creator status
+    if (targetAddress) {
+      refreshProfile(targetAddress);
+    }
+  };
+
+  // Handle registration cancel
+  const handleRegistrationCancel = () => {
+    setShowRegistrationForm(false);
+  };
+
   return (
-    <div className="container mx-auto p-6 bg-white rounded-lg shadow-md">
+    <>
+      {/* Registration Form Modal */}
+      {showRegistrationForm && (
+        <SimpleRegistrationForm
+          onClose={handleRegistrationCancel}
+        />
+      )}
+
+      {/* Main Profile Content */}
+      <div className="container mx-auto p-6 bg-white rounded-lg shadow-md">
       <div className="flex items-center space-x-6 mb-8">
         <img 
           src={creatorProfile.avatarURI} 
@@ -162,7 +188,8 @@ const CreatorProfile: React.FC<CreatorProfileProps> = ({ creatorAddress }) => {
           </Button>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

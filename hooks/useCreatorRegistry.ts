@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useContractManager } from './useContractManager';
+import { useState, useCallback } from 'react';
 import { ethers } from 'ethers';
+import { useContractManager } from './useContractManager';
 
 interface CreatorProfile {
   handle: string;
@@ -19,60 +19,54 @@ export const useCreatorRegistry = () => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  const creatorRegistryContract = contractManager.contracts.creatorRegistry;
-
   const getCreatorProfile = useCallback(async (address: string, retry: number = 0) => {
-    console.log('getCreatorProfile called for address:', address, 'retry attempt:', retry);
-    if (!creatorRegistryContract) {
-      setError('CreatorRegistry contract not initialized.');
-      console.log('CreatorRegistry contract not initialized.');
+    if (!contractManager) {
+      console.error('Contract manager not available');
+      setError('Wallet not connected or contracts not initialized');
       return null;
     }
-    
-    // Prevent multiple simultaneous calls
-    if (isLoading && retry === 0) {
-      console.log('Already loading, skipping duplicate call');
-      return null;
-    }
-    
+
     setIsLoading(true);
     setError(null);
     setRetryCount(retry);
-    try {
-      // The public mapping 'creators' automatically generates a getter function
-      // that returns (string handle, string avatarURI, string bio, bool kycVerified, bool isBanned, uint256 earned)
-      const profile = await creatorRegistryContract.creators(address);
-      console.log('Raw profile data from contract:', profile);
-      // Check if the handle is empty to determine if the creator exists
-      const isCreator = profile[0] !== ''; // handle is the first element
 
-      setCreatorProfile({
-        handle: profile[0],
-        avatarURI: profile[1],
-        bio: profile[2],
-        kycVerified: profile[3],
-        isBanned: profile[4],
-        earned: ethers.formatEther(profile[5]), // Convert BigInt to string ETH
+    try {
+      console.log('Getting creator profile for address:', address);
+      
+      const contract = contractManager.getContract('creatorRegistry', contractManager.currentChainId!);
+      if (!contract) {
+        throw new Error('CreatorRegistry contract not found');
+      }
+
+      // Call the creators mapping from the contract
+      const creator = await contract.creators(address);
+      console.log('Raw creator data from contract:', creator);
+
+      // Check if creator exists (handle is not empty)
+      const isCreator = creator.handle && creator.handle.length > 0;
+      
+      const profile: CreatorProfile = {
+        handle: creator.handle || '',
+        avatarURI: creator.avatarURI || '',
+        bio: creator.bio || '',
+        kycVerified: creator.kycVerified || false,
+        isBanned: creator.isBanned || false,
+        earned: creator.earned ? creator.earned.toString() : '0',
         isCreator: isCreator,
-      });
-      console.log('Creator profile set:', {
-        handle: profile[0],
-        avatarURI: profile[1],
-        bio: profile[2],
-        kycVerified: profile[3],
-        isBanned: profile[4],
-        earned: ethers.formatEther(profile[5]),
-        isCreator: isCreator,
-      });
+      };
+
+      console.log('Processed creator profile:', profile);
+      setCreatorProfile(profile);
       return profile;
-    } catch (err: any) {
-      console.error('Failed to fetch creator profile (catch block):', err);
-      // Check for "execution reverted" error - this typically means creator doesn't exist
-      if (err.code === 'CALL_EXCEPTION') {
-        console.log('Caught CALL_EXCEPTION - likely unregistered creator.');
-        // This means the address is not a registered creator, and the contract reverted
-        // Treat this as "not a creator" rather than a hard error
-        setCreatorProfile({
+
+    } catch (error: any) {
+      console.error('Error getting creator profile:', error);
+      
+      // If it's a CALL_EXCEPTION, it might mean the profile doesn't exist yet.
+      // Return a default profile instead of throwing an error.
+      if (error.code === 'CALL_EXCEPTION') {
+        console.log('CALL_EXCEPTION caught, assuming creator profile does not exist.');
+        const defaultProfile: CreatorProfile = {
           handle: '',
           avatarURI: '',
           bio: '',
@@ -80,93 +74,130 @@ export const useCreatorRegistry = () => {
           isBanned: false,
           earned: '0',
           isCreator: false,
-        });
-        setError(null); // Clear error as it's expected behavior for unregistered creators
-        return null;
+        };
+        setCreatorProfile(defaultProfile);
+        setIsLoading(false); // Ensure loading state is reset
+        return defaultProfile;
       }
-      // For network errors, try to retry up to 2 times
-      if ((err.code === 'NETWORK_ERROR' || err.code === 'TIMEOUT') && retry < 2) {
-        console.log(`Network error, retrying... (attempt ${retry + 1})`);
-        setTimeout(() => {
-          getCreatorProfile(address, retry + 1);
-        }, 1000 * (retry + 1)); // Exponential backoff
-        return null;
+
+      const errorMessage = error.message || 'Failed to get creator profile';
+      setError(errorMessage);
+      
+      // Retry logic for network issues
+      if (retry < 3 && (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT')) {
+        console.log(`Retrying getCreatorProfile (attempt ${retry + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retry + 1)));
+        return getCreatorProfile(address, retry + 1);
       }
       
-      setError(`Failed to fetch creator profile: ${err.message || err.reason || 'Unknown error'}`);
       return null;
     } finally {
-      console.log('getCreatorProfile finally block: setting isLoading to false.');
       setIsLoading(false);
     }
-  }, [creatorRegistryContract, contractManager]);
+  }, [contractManager]);
 
   const registerCreator = useCallback(async (handle: string, avatarURI: string, bio: string) => {
-    if (!creatorRegistryContract) {
-      setError('CreatorRegistry contract not initialized.');
-      return null;
+    if (!contractManager) {
+      throw new Error('Contract manager not available. Please connect your wallet.');
     }
+
     setIsLoading(true);
     setError(null);
+
     try {
-      const txResult = await contractManager.executeTransaction(
+      console.log('Starting creator registration:', { handle, avatarURI, bio });
+      
+      // Validate inputs
+      if (!handle.trim()) {
+        throw new Error('Handle cannot be empty');
+      }
+      if (handle.length < 3 || handle.length > 20) {
+        throw new Error('Handle must be between 3-20 characters');
+      }
+      if (!/^[a-zA-Z0-9_]+$/.test(handle)) {
+        throw new Error('Handle can only contain letters, numbers, and underscores');
+      }
+      if (!avatarURI.trim()) {
+        throw new Error('Avatar URL cannot be empty');
+      }
+      if (!bio.trim() || bio.length < 10) {
+        throw new Error('Bio must be at least 10 characters');
+      }
+
+      // Execute the registration transaction
+      const result = await contractManager.executeTransaction(
         'creatorRegistry',
-        'register', // Use 'register' function name from contract
+        'register',
         [handle, avatarURI, bio]
       );
-      console.log('Register Creator transaction sent:', txResult.hash);
-      // Optionally, refetch profile after successful registration
-      // await getCreatorProfile(contractManager.signer?.getAddress() || ''); // Assuming signer is available
-      return txResult;
-    } catch (err: any) {
-      console.error('Failed to register creator:', err);
-      setError(`Failed to register creator: ${err.message || err.reason || 'Unknown error'}`);
-      return null;
+
+      console.log('Creator registration transaction sent:', result);
+      return result;
+
+    } catch (error: any) {
+      console.error('Creator registration failed:', error);
+      const errorMessage = error.message || 'Registration failed';
+      setError(errorMessage);
+      throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [creatorRegistryContract, contractManager]);
+  }, [contractManager]);
 
   const updateProfile = useCallback(async (avatarURI: string, bio: string) => {
-    if (!creatorRegistryContract) {
-      setError('CreatorRegistry contract not initialized.');
-      return null;
+    if (!contractManager) {
+      throw new Error('Contract manager not available. Please connect your wallet.');
     }
+
     setIsLoading(true);
     setError(null);
+
     try {
-      const txResult = await contractManager.executeTransaction(
+      console.log('Updating creator profile:', { avatarURI, bio });
+      
+      // Validate inputs
+      if (!avatarURI.trim()) {
+        throw new Error('Avatar URL cannot be empty');
+      }
+      if (!bio.trim() || bio.length < 10) {
+        throw new Error('Bio must be at least 10 characters');
+      }
+
+      // Execute the update transaction
+      const result = await contractManager.executeTransaction(
         'creatorRegistry',
         'updateProfile',
         [avatarURI, bio]
       );
-      console.log('Update Profile transaction sent:', txResult.hash);
-      // Optionally, refetch profile after successful update
-      // await getCreatorProfile(contractManager.signer?.getAddress() || '');
-      return txResult;
-    } catch (err: any) {
-      console.error('Failed to update profile:', err);
-      setError(`Failed to update profile: ${err.message || err.reason || 'Unknown error'}`);
-      return null;
+
+      console.log('Profile update transaction sent:', result);
+      return result;
+
+    } catch (error: any) {
+      console.error('Profile update failed:', error);
+      const errorMessage = error.message || 'Profile update failed';
+      setError(errorMessage);
+      throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [creatorRegistryContract, contractManager]);
-
-  // Removed automatic profile fetching to prevent infinite loops
-  // Profile fetching is now handled by the component explicitly
+  }, [contractManager]);
 
   const refreshProfile = useCallback((address: string) => {
-    setRetryCount(0);
     return getCreatorProfile(address);
   }, [getCreatorProfile]);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
   return {
     creatorProfile,
     isLoading,
     error,
     retryCount,
-    setError, // Export setError
+    setError,
+    clearError,
     getCreatorProfile,
     registerCreator,
     updateProfile,

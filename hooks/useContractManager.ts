@@ -1,39 +1,46 @@
-import { useContext } from 'react';
-import { WalletContext, WalletContextType } from '../lib/WalletProvider'; // Import WalletContextType
-import ContractManager from '../lib/ContractManager'; // Default export
+import { useContext, useMemo } from 'react';
+import { WalletContext, WalletContextType } from '../lib/WalletProvider';
+import ContractManager from '../lib/ContractManager';
 import { getChainByChainId } from '../lib/blockchainConfig';
 
-// This will hold the singleton instance of ContractManager
-let contractManagerInstance: ContractManager | null = null;
-
-export const useContractManager = (): ContractManager => {
-  const { signer, provider, chainId } = useContext(WalletContext) as WalletContextType; // Cast to WalletContextType
-
-  if (!chainId) {
-    throw new Error('No chainId available. Please connect your wallet to a supported network.');
+export const useContractManager = (): ContractManager | null => {
+  const walletContext = useContext(WalletContext);
+  
+  if (!walletContext) {
+    throw new Error('useContractManager must be used within a WalletProvider');
   }
 
-  // Re-initialize ContractManager only if signer/provider/chainId changes
-  // or if it hasn't been initialized yet.
-  // This ensures we always have an up-to-date instance.
-  if (!contractManagerInstance ||
-      (signer && contractManagerInstance.signer !== signer) ||
-      (provider && contractManagerInstance.provider !== provider) ||
-      (chainId && contractManagerInstance.currentChainId !== chainId)) {
-    
-    const currentSignerOrProvider = signer || provider;
-    if (!currentSignerOrProvider) {
-      throw new Error('No signer or provider available to initialize ContractManager.');
+  const { signer, provider, chainId, isConnected } = walletContext;
+
+  const contractManager = useMemo(() => {
+    console.log('useContractManager: Creating contract manager');
+    console.log('- isConnected:', isConnected);
+    console.log('- chainId:', chainId);
+    console.log('- signer available:', !!signer);
+    console.log('- provider available:', !!provider);
+
+    if (!isConnected || !chainId || (!signer && !provider)) {
+      console.log('useContractManager: Not ready to create contract manager');
+      return null;
     }
 
-    // Ensure the chain is supported before initializing
     const chain = getChainByChainId(chainId);
     if (!chain) {
-      throw new Error(`Unsupported chain ID: ${chainId}. Please switch to a supported network.`);
+      console.error(`useContractManager: Unsupported chain ID: ${chainId}`);
+      return null;
     }
 
-    contractManagerInstance = new ContractManager(currentSignerOrProvider, chainId);
-  }
+    try {
+      // Prefer signer over provider for write operations
+      const signerOrProvider = signer || provider;
+      const manager = new ContractManager(signerOrProvider!, chainId);
+      console.log('useContractManager: Contract manager created successfully');
+      return manager;
+    } catch (error) {
+      console.error('useContractManager: Failed to create contract manager:', error);
+      return null;
+    }
+  }, [signer, provider, chainId, isConnected]);
 
-  return contractManagerInstance;
+  return contractManager;
 };

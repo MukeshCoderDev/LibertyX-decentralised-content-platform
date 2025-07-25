@@ -12,6 +12,7 @@
     "@coinbase/wallet-sdk": "^4.3.7",
     "@openzeppelin/contracts": "^5.0.2",
     "@walletconnect/web3-provider": "^1.8.0",
+    "arweave": "^1.15.7",
     "ethers": "^6.13.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

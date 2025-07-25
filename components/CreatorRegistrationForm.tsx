@@ -1,113 +1,336 @@
 import React, { useState } from 'react';
+import { useCreatorRegistry } from '../hooks/useCreatorRegistry';
 import { useWallet } from '../lib/WalletProvider';
-import { useCreatorRegistry } from '../hooks/useCreatorRegistry'; // Import the new hook
 import Button from './ui/Button';
-import Modal from './ui/Modal';
 
 interface CreatorRegistrationFormProps {
-  onRegistrationSuccess: () => void;
-  onClose: () => void;
+  onRegistrationSuccess?: () => void;
+  onClose?: () => void;
 }
 
-const CreatorRegistrationForm: React.FC<CreatorRegistrationFormProps> = ({ onRegistrationSuccess, onClose }) => {
+const CreatorRegistrationForm: React.FC<CreatorRegistrationFormProps> = ({
+  onRegistrationSuccess,
+  onClose,
+}) => {
   const { account, isConnected } = useWallet();
-  const { registerCreator, isLoading, error, setError } = useCreatorRegistry(); // Use the new hook
+  const { registerCreator, isLoading, error, clearError } = useCreatorRegistry();
 
-  const [handle, setHandle] = useState('');
-  const [avatarURI, setAvatarURI] = useState('');
-  const [bio, setBio] = useState('');
-  const [successMessage, setSuccessMessage] = useState<string | null>(null); // Keep success message here
+  const [formData, setFormData] = useState({
+    handle: '',
+    avatarURI: '',
+    bio: '',
+  });
 
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+
+  // Handle form input changes
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  // Validate form
+  const validateForm = (): boolean => {
+    const errors: {[key: string]: string} = {};
+
+    if (!formData.handle.trim()) {
+      errors.handle = 'Handle is required';
+    } else if (formData.handle.length < 3) {
+      errors.handle = 'Handle must be at least 3 characters';
+    } else if (formData.handle.length > 20) {
+      errors.handle = 'Handle must be less than 20 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.handle)) {
+      errors.handle = 'Handle can only contain letters, numbers, and underscores';
+    }
+
+    if (!formData.avatarURI.trim()) {
+      errors.avatarURI = 'Avatar URL is required';
+    } else if (!isValidURL(formData.avatarURI)) {
+      errors.avatarURI = 'Please enter a valid URL';
+    }
+
+    if (!formData.bio.trim()) {
+      errors.bio = 'Bio is required';
+    } else if (formData.bio.length < 10) {
+      errors.bio = 'Bio must be at least 10 characters';
+    } else if (formData.bio.length > 500) {
+      errors.bio = 'Bio must be less than 500 characters';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // URL validation helper
+  const isValidURL = (string: string): boolean => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Clear error from hook
-    setSuccessMessage(null);
+    
+    console.log('Form submitted - starting registration process');
+    
+    if (!isConnected) {
+      console.error('Wallet not connected');
+      alert('Please connect your wallet first');
+      return;
+    }
 
-    if (!isConnected || !account) {
-      setError('Please connect your wallet to register as a creator.');
+    if (!account) {
+      console.error('No account available');
+      alert('No wallet account detected. Please reconnect your wallet.');
       return;
     }
-    if (!handle || !avatarURI || !bio) {
-      setError('All fields are required.');
+
+    console.log('Connected account:', account);
+    console.log('Form validation starting...');
+
+    if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
+
+    console.log('Form validation passed');
+    clearError();
 
     try {
-      const txResult = await registerCreator(handle, avatarURI, bio);
-      if (txResult) {
-        console.log('Registration transaction sent:', txResult.hash);
-        setSuccessMessage('Creator registration successful! Transaction hash: ' + txResult.hash);
-        onRegistrationSuccess();
+      console.log('Starting creator registration with data:', formData);
+      console.log('Account address:', account);
+      
+      const result = await registerCreator(
+        formData.handle,
+        formData.avatarURI,
+        formData.bio
+      );
+
+      console.log('Registration result:', result);
+
+      if (result) {
+        console.log('Creator registration successful:', result);
+        alert(`Creator registration successful! Transaction hash: ${result.hash}`);
+        
+        if (onRegistrationSuccess) {
+          onRegistrationSuccess();
+        }
       } else {
-        // Error is already set by the hook if txResult is null
-        setSuccessMessage(null);
+        console.error('Registration returned null/undefined result');
+        alert('Registration failed - no transaction result received');
       }
-    } catch (err: any) {
-      // This catch block might be redundant if hook handles all errors, but good for safety
-      console.error('Creator registration failed:', err);
-      setError(`Registration failed: ${err.message || err.reason || 'Unknown error'}`);
+    } catch (error: any) {
+      console.error('Registration failed with error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        reason: error.reason,
+        stack: error.stack
+      });
+      
+      // Show user-friendly error message
+      let userMessage = 'Registration failed: ';
+      if (error.message?.includes('user rejected')) {
+        userMessage += 'Transaction was rejected by user';
+      } else if (error.message?.includes('insufficient funds')) {
+        userMessage += 'Insufficient funds for gas fees';
+      } else if (error.message?.includes('taken')) {
+        userMessage += 'This handle is already taken';
+      } else if (error.message?.includes('empty handle')) {
+        userMessage += 'Handle cannot be empty';
+      } else {
+        userMessage += error.message || 'Unknown error occurred';
+      }
+      
+      alert(userMessage);
+    }
+  };
+
+  // Handle cancel
+  const handleCancel = () => {
+    setFormData({ handle: '', avatarURI: '', bio: '' });
+    setValidationErrors({});
+    clearError();
+    
+    if (onClose) {
+      onClose();
     }
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title="Register as a Creator">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="handle" className="block text-sm font-medium text-gray-700">
-            Creator Handle
-          </label>
-          <input
-            type="text"
-            id="handle"
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder="e.g., @LibertyCreator"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="avatarURI" className="block text-sm font-medium text-gray-700">
-            Avatar URI (IPFS/Arweave)
-          </label>
-          <input
-            type="url"
-            id="avatarURI"
-            value={avatarURI}
-            onChange={(e) => setAvatarURI(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder="e.g., ipfs://Qm... or arweave://..."
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-            Bio
-          </label>
-          <textarea
-            id="bio"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            rows={3}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder="Tell us about yourself and your content..."
-            required
-          ></textarea>
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Register as Creator</h2>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
+        {/* Error Display */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex justify-between items-center">
+              <p className="text-red-800 text-sm">{error}</p>
+              <button
+                onClick={clearError}
+                className="text-red-600 hover:text-red-800"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
-        <div className="flex justify-end space-x-2">
-          <Button type="button" onClick={onClose} variant="outline" disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading || !isConnected}>
-            {isLoading ? 'Registering...' : 'Register'}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+        {/* Registration Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Handle Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Creator Handle *
+            </label>
+            <input
+              type="text"
+              value={formData.handle}
+              onChange={(e) => handleInputChange('handle', e.target.value)}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${
+                validationErrors.handle ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="e.g., creator123"
+              disabled={isLoading}
+            />
+            {validationErrors.handle && (
+              <p className="text-red-600 text-sm mt-1">{validationErrors.handle}</p>
+            )}
+            <p className="text-gray-500 text-xs mt-1">
+              Your unique identifier on the platform (3-20 characters, letters, numbers, underscore only)
+            </p>
+          </div>
+
+          {/* Avatar URI Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Avatar URL *
+            </label>
+            <input
+              type="url"
+              value={formData.avatarURI}
+              onChange={(e) => handleInputChange('avatarURI', e.target.value)}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${
+                validationErrors.avatarURI ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="https://example.com/avatar.jpg"
+              disabled={isLoading}
+            />
+            {validationErrors.avatarURI && (
+              <p className="text-red-600 text-sm mt-1">{validationErrors.avatarURI}</p>
+            )}
+            <p className="text-gray-500 text-xs mt-1">
+              URL to your profile picture (HTTPS recommended)
+            </p>
+          </div>
+
+          {/* Bio Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Bio *
+            </label>
+            <textarea
+              value={formData.bio}
+              onChange={(e) => handleInputChange('bio', e.target.value)}
+              rows={4}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${
+                validationErrors.bio ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Tell us about yourself and your content..."
+              disabled={isLoading}
+            />
+            {validationErrors.bio && (
+              <p className="text-red-600 text-sm mt-1">{validationErrors.bio}</p>
+            )}
+            <p className="text-gray-500 text-xs mt-1">
+              {formData.bio.length}/500 characters (minimum 10 characters)
+            </p>
+          </div>
+
+          {/* Avatar Preview */}
+          {formData.avatarURI && isValidURL(formData.avatarURI) && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Avatar Preview
+              </label>
+              <img
+                src={formData.avatarURI}
+                alt="Avatar preview"
+                className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+
+          {/* Wallet Info */}
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Connected Wallet:</strong> {account?.substring(0, 6)}...{account?.substring(account.length - 4)}
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Registration will be stored on the blockchain and requires a transaction fee.
+            </p>
+          </div>
+
+          {/* Debug Info (remove in production) */}
+          <div className="bg-yellow-50 p-3 rounded-lg text-xs">
+            <p><strong>Debug Info:</strong></p>
+            <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+            <p>Account: {account || 'None'}</p>
+            <p>Loading: {isLoading ? 'Yes' : 'No'}</p>
+            <p>Error: {error || 'None'}</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3 pt-4">
+            <Button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white"
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isLoading || !isConnected}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Registering...
+                </div>
+              ) : (
+                'Register as Creator'
+              )}
+            </Button>
+          </div>
+        </form>
+
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-sm text-gray-600">Processing registration...</p>
+              <p className="text-xs text-gray-500">Please confirm the transaction in your wallet</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
