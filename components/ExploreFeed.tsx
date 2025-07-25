@@ -13,6 +13,7 @@ const categories = ['All', 'Verified', 'HD', 'VR', 'Solo', 'Couple'];
 const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
   const [price, setPrice] = useState(50);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [displayedItems, setDisplayedItems] = useState(12); // Show 12 items initially
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-20 md:mb-0">
@@ -53,7 +54,7 @@ const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
 
       {/* Infinite Scroll Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {exploreFeedData.map(item => (
+        {exploreFeedData.slice(0, displayedItems).map(item => (
           <ErrorBoundary key={item.id} fallback={
             <SimpleContentCard item={item} onNavigate={onNavigate} />
           }>
@@ -62,11 +63,16 @@ const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
         ))}
       </div>
        {/* Load More - for infinite scroll simulation */}
-       <div className="text-center mt-12">
-           <button className="bg-card text-text-secondary px-6 py-3 rounded-full hover:bg-primary hover:text-white transition-colors">
-               Load More
+       {displayedItems < exploreFeedData.length && (
+         <div className="text-center mt-12">
+           <button 
+             onClick={() => setDisplayedItems(prev => Math.min(prev + 8, exploreFeedData.length))}
+             className="bg-card text-text-secondary px-6 py-3 rounded-full hover:bg-primary hover:text-white transition-colors"
+           >
+               Load More ({exploreFeedData.length - displayedItems} remaining)
            </button>
-       </div>
+         </div>
+       )}
     </div>
   );
 };

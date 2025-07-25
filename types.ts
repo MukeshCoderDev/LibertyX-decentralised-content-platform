@@ -25,6 +25,7 @@ export interface ContentCardData {
   isVR: boolean;
   category: string;
   accessLevel?: 'public' | 'subscription' | 'nft' | 'premium';
+  nftTierRequired?: number;
 }
 
 export interface ChartData {
@@ -52,4 +53,30 @@ export interface SubscriptionStatus {
     expiresAt: number;
     isActive: boolean;
     daysRemaining: number;
+}
+
+export interface NFTTier {
+    id: number;
+    creatorAddress: string;
+    uri: string;
+    maxSupply: number;
+    currentSupply: number;
+    priceWei: string;
+    priceEth: string;
+    isActive: boolean;
+}
+
+export interface NFTHolding {
+    tierId: number;
+    amount: number;
+    tier: NFTTier;
+}
+
+export interface NFTTierStats {
+    tierId: number;
+    holderCount: number;
+    totalMinted: number;
+    maxSupply: number;
+    revenue: string; // in wei
+    revenueEth: string; // formatted in ETH
 }

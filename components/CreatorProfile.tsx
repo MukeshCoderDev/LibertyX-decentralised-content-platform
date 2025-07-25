@@ -5,7 +5,7 @@ import Button from './ui/Button';
 import CreatorRegistrationForm from './CreatorRegistrationForm';
 import SimpleRegistrationForm from './SimpleRegistrationForm';
 import CreatorSubscriptionPlans from './CreatorSubscriptionPlans';
-import { Link } from 'react-router-dom'; // Assuming react-router-dom for navigation
+import CreatorNFTTiers from './CreatorNFTTiers';
 
 interface CreatorProfileProps {
   creatorAddress?: string; // Optional: if viewing another creator's profile
@@ -174,6 +174,14 @@ const CreatorProfile: React.FC<CreatorProfileProps> = ({ creatorAddress }) => {
           creatorName={creatorProfile.handle}
           creatorAvatar={creatorProfile.avatarURI}
           isOwnProfile={account === targetAddress}
+        />
+      </div>
+
+      {/* NFT Access Tiers */}
+      <div className="mb-8">
+        <CreatorNFTTiers
+          creatorAddress={targetAddress!}
+          creatorName={creatorProfile.handle}
         />
       </div>
 

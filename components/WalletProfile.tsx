@@ -8,6 +8,7 @@ import Button from './ui/Button';
 import Modal from './ui/Modal';
 import WalletConnectIcon from './icons/WalletConnectIcon';
 import CheckIcon from './icons/CheckIcon';
+import UserNFTCollection from './UserNFTCollection';
 
 const WalletProfile: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,6 +51,11 @@ const WalletProfile: React.FC = () => {
                         </div>
                     ))}
                 </div>
+            </div>
+
+            {/* NFT Collection */}
+            <div className="mb-8">
+                <UserNFTCollection />
             </div>
 
             <div className="bg-card p-6 rounded-2xl">

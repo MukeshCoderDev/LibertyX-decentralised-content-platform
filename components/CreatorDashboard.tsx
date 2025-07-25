@@ -1,11 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { NavigationProps } from '../types';
+import { NavigationProps, NFTTierStats } from '../types';
 import { dashboardChartData } from '../lib/mock-data';
+import { useWallet } from '../lib/WalletProvider';
+import { useNFTAccess } from '../hooks/useNFTAccess';
 import Button from './ui/Button';
 import SubscriptionManager from './SubscriptionManager';
+import NFTTierCreationForm from './NFTTierCreationForm';
 
 const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
+    const { account } = useWallet();
+    const { getTierStats } = useNFTAccess();
+    const [showNFTForm, setShowNFTForm] = useState(false);
+    const [nftStats, setNftStats] = useState<NFTTierStats[]>([]);
+    const [loadingNFTStats, setLoadingNFTStats] = useState(true);
+
+    useEffect(() => {
+        const loadNFTStats = async () => {
+            if (!account) return;
+            
+            try {
+                setLoadingNFTStats(true);
+                const stats = await getTierStats(account);
+                setNftStats(stats);
+            } catch (err) {
+                console.error('Error loading NFT stats:', err);
+            } finally {
+                setLoadingNFTStats(false);
+            }
+        };
+
+        loadNFTStats();
+    }, [account, getTierStats]);
+
+    const handleNFTCreated = (txHash: string) => {
+        setShowNFTForm(false);
+        alert(`NFT tier created successfully! Transaction hash: ${txHash}`);
+        // Reload stats after creation
+        if (account) {
+            getTierStats(account).then(setNftStats).catch(console.error);
+        }
+    };
 
     const renderGradient = () => (
         <defs>
@@ -43,6 +78,55 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                 <SubscriptionManager mode="creator" />
             </div>
 
+            {/* NFT Tier Management */}
+            <div className="mb-8">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-satoshi font-bold">NFT Access Tiers</h2>
+                    <Button
+                        variant="primary"
+                        onClick={() => setShowNFTForm(!showNFTForm)}
+                    >
+                        {showNFTForm ? 'Cancel' : 'Create NFT Tier'}
+                    </Button>
+                </div>
+                
+                {showNFTForm && (
+                    <div className="mb-6">
+                        <NFTTierCreationForm
+                            onSuccess={handleNFTCreated}
+                            onCancel={() => setShowNFTForm(false)}
+                        />
+                    </div>
+                )}
+
+                {/* NFT Stats */}
+                <div className="bg-card p-6 rounded-2xl">
+                    <h3 className="font-satoshi font-bold text-lg mb-4">NFT Tier Statistics</h3>
+                    {loadingNFTStats ? (
+                        <div className="animate-pulse space-y-3">
+                            <div className="h-4 bg-border rounded"></div>
+                            <div className="h-4 bg-border rounded"></div>
+                            <div className="h-4 bg-border rounded"></div>
+                        </div>
+                    ) : nftStats.length > 0 ? (
+                        <div className="space-y-3">
+                            {nftStats.map((stat) => (
+                                <div key={stat.tierId} className="flex items-center justify-between text-sm">
+                                    <span>Tier #{stat.tierId}</span>
+                                    <div className="flex gap-4 text-text-secondary">
+                                        <span>{stat.holderCount} holders</span>
+                                        <span>{stat.totalMinted}/{stat.maxSupply} minted</span>
+                                        <span className="text-green-400">{stat.revenueEth} ETH</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-text-secondary">No NFT tiers created yet. Create your first tier to get started!</p>
+                    )}
+                </div>
+            </div>
+
             {/* Other Cards */}
             <div className="grid md:grid-cols-3 gap-8">
                 {/* Recent Uploads */}
@@ -58,14 +142,31 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                     </div>
                 </div>
 
-                {/* Subscribers */}
-                 <div className="bg-card p-6 rounded-2xl">
-                    <h3 className="font-satoshi font-bold text-lg mb-4">Subscriber NFTs</h3>
-                     <div className="space-y-2">
-                         <p>Tier 1: 150 holders</p>
-                         <p>Tier 2: 45 holders</p>
-                         <p>Tier 3: 12 holders</p>
-                     </div>
+                {/* NFT Holders Summary */}
+                <div className="bg-card p-6 rounded-2xl">
+                    <h3 className="font-satoshi font-bold text-lg mb-4">NFT Holders</h3>
+                    {loadingNFTStats ? (
+                        <div className="animate-pulse space-y-2">
+                            <div className="h-4 bg-border rounded"></div>
+                            <div className="h-4 bg-border rounded"></div>
+                            <div className="h-4 bg-border rounded"></div>
+                        </div>
+                    ) : nftStats.length > 0 ? (
+                        <div className="space-y-2">
+                            {nftStats.slice(0, 3).map((stat) => (
+                                <p key={stat.tierId}>
+                                    Tier #{stat.tierId}: {stat.holderCount} holders
+                                </p>
+                            ))}
+                            {nftStats.length > 3 && (
+                                <p className="text-text-secondary text-sm">
+                                    +{nftStats.length - 3} more tiers
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-text-secondary">No NFT holders yet</p>
+                    )}
                 </div>
 
                 {/* Withdraw */}
