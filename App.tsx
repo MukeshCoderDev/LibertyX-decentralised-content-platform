@@ -10,6 +10,7 @@ import CreatorDashboard from './components/CreatorDashboard';
 import WalletProfile from './components/WalletProfile'; // Keep for now, might be removed later
 import CreatorProfile from './components/CreatorProfile'; // Import new CreatorProfile
 import CreatorRegistrationForm from './components/CreatorRegistrationForm'; // Import new CreatorRegistrationForm
+import { GovernanceDashboard } from './components/GovernanceDashboard'; // Import governance dashboard
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Landing);
@@ -41,6 +42,8 @@ const App: React.FC = () => {
         return <WalletProfile />;
       case Page.CreatorProfile: // New case for CreatorProfile
         return <CreatorProfile />;
+      case Page.Governance: // New case for Governance
+        return <GovernanceDashboard />;
       default:
         return <LandingPage onNavigate={navigate} />;
     }

@@ -6,6 +6,7 @@ export enum Page {
   Dashboard = 'DASHBOARD',
   Profile = 'PROFILE',
   CreatorProfile = 'CREATOR_PROFILE', // Add new page type
+  Governance = 'GOVERNANCE', // Add governance page type
 }
 
 export interface NavigationProps {
