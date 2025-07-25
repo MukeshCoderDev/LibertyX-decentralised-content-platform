@@ -310,6 +310,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         if (accounts.length > 0) {
           connect(WalletType.MetaMask); // Attempt to connect if accounts exist
         }
+      }).catch((error: any) => {
+        console.warn('Failed to check existing accounts:', error);
       });
     }
 
