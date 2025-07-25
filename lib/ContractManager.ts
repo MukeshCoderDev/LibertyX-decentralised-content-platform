@@ -12,12 +12,11 @@ class ContractManager implements IContractManager {
     subscriptionManager: null,
     nftAccess: null,
     libertyDAO: null,
-    tipJar: null,
   };
 
-  private provider: Provider | null = null;
-  private signer: Signer | null = null;
-  private currentChainId: number | null = null;
+  public provider: Provider | null = null;
+  public signer: Signer | null = null;
+  public currentChainId: number | null = null;
 
   constructor(signerOrProvider: Signer | Provider, chainId: number) {
     this.setSignerOrProvider(signerOrProvider, chainId);

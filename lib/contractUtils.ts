@@ -2,13 +2,14 @@ import { ethers } from 'ethers';
 import { Chain } from './web3-types';
 import { SUPPORTED_CHAINS, getChainByChainId } from './blockchainConfig';
 
-import LibertyTokenABI from '../../artifacts/contracts/01_LibertyToken.sol/LibertyToken.json';
-import CreatorRegistryABI from '../../artifacts/contracts/02_CreatorRegistry.sol/CreatorRegistry.json';
-import ContentRegistryABI from '../../artifacts/contracts/03_ContentRegistry.sol/ContentRegistry.json';
-import RevenueSplitterABI from '../../artifacts/contracts/04_RevenueSplitter.sol/RevenueSplitter.json';
-import SubscriptionManagerABI from '../../artifacts/contracts/05_SubscriptionManager.sol/SubscriptionManager.json';
-import NFTAccessABI from '../../artifacts/contracts/06_NFTAccess.sol/NFTAccess.json';
-import LibertyDAOABI from '../../artifacts/contracts/07_LibertyDAO.sol/LibertyDAO.json';
+import LibertyTokenABI from '@artifacts/contracts/01_LibertyToken.sol/LibertyToken.json';
+import CreatorRegistryABI from '@artifacts/contracts/02_CreatorRegistry.sol/CreatorRegistry.json';
+import ContentRegistryABI from '@artifacts/contracts/03_ContentRegistry.sol/ContentRegistry.json';
+import RevenueSplitterABI from '@artifacts/contracts/04_RevenueSplitter.sol/RevenueSplitter.json';
+import SubscriptionManagerABI from '@artifacts/contracts/05_SubscriptionManager.sol/SubscriptionManager.json';
+import NFTAccessABI from '@artifacts/contracts/06_NFTAccess.sol/NFTAccess.json';
+import LibertyDAOABI from '@artifacts/contracts/07_LibertyDAO.sol/LibertyDAO.json';
+// import TipJarABI from '@artifacts/contracts/TipJar.sol/TipJar.json'; // Removed as TipJar.sol does not exist
 
 const ABIs: { [key: string]: any } = {
   libertyToken: LibertyTokenABI.abi,

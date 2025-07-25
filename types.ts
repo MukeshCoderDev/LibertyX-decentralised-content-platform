@@ -5,6 +5,7 @@ export enum Page {
   Upload = 'UPLOAD',
   Dashboard = 'DASHBOARD',
   Profile = 'PROFILE',
+  CreatorProfile = 'CREATOR_PROFILE', // Add new page type
 }
 
 export interface NavigationProps {

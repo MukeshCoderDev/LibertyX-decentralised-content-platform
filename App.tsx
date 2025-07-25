@@ -7,15 +7,23 @@ import ExploreFeed from './components/ExploreFeed';
 import WatchPage from './components/WatchPage';
 import CreatorUpload from './components/CreatorUpload';
 import CreatorDashboard from './components/CreatorDashboard';
-import WalletProfile from './components/WalletProfile';
+import WalletProfile from './components/WalletProfile'; // Keep for now, might be removed later
+import CreatorProfile from './components/CreatorProfile'; // Import new CreatorProfile
+import CreatorRegistrationForm from './components/CreatorRegistrationForm'; // Import new CreatorRegistrationForm
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Landing);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false); // State for modal
 
   const navigate = useCallback((page: Page) => {
     setCurrentPage(page);
     window.scrollTo(0, 0);
   }, []);
+
+  const handleRegistrationSuccess = useCallback(() => {
+    setShowRegistrationModal(false);
+    navigate(Page.CreatorProfile); // Navigate to creator profile after registration
+  }, [navigate]);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -29,8 +37,10 @@ const App: React.FC = () => {
         return <CreatorUpload onNavigate={navigate} />;
       case Page.Dashboard:
         return <CreatorDashboard onNavigate={navigate} />;
-      case Page.Profile:
+      case Page.Profile: // This will now show WalletProfile
         return <WalletProfile />;
+      case Page.CreatorProfile: // New case for CreatorProfile
+        return <CreatorProfile />;
       default:
         return <LandingPage onNavigate={navigate} />;
     }
@@ -38,8 +48,20 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {currentPage !== Page.Landing && <Header onNavigate={navigate} currentPage={currentPage} />}
+      {currentPage !== Page.Landing && (
+        <Header
+          onNavigate={navigate}
+          currentPage={currentPage}
+          onOpenRegistrationModal={() => setShowRegistrationModal(true)} // Pass setter to Header
+        />
+      )}
       <main>{renderPage()}</main>
+      {showRegistrationModal && (
+        <CreatorRegistrationForm
+          onRegistrationSuccess={handleRegistrationSuccess}
+          onClose={() => setShowRegistrationModal(false)}
+        />
+      )}
     </div>
   );
 };

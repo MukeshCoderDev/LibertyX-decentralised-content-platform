@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
+          '@artifacts': path.resolve(__dirname, './artifacts'), // Add alias for artifacts
         }
       },
       optimizeDeps: {
