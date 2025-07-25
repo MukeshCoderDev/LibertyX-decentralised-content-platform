@@ -61,61 +61,91 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
     };
 
     return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-20 md:mb-0">
-            <h1 className="text-4xl font-satoshi font-bold mb-8">Creator Dashboard</h1>
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 mb-16 sm:mb-20 md:mb-0">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-satoshi font-bold mb-6 sm:mb-8">Creator Dashboard</h1>
             
-            {/* Tab Navigation */}
-            <div className="flex space-x-1 mb-8 bg-card rounded-lg p-1">
+            {/* Tab Navigation - Mobile Optimized */}
+            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 mb-6 sm:mb-8 bg-card rounded-lg p-1">
                 <button
                     onClick={() => setActiveTab('overview')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
                         activeTab === 'overview'
                             ? 'bg-primary text-white'
                             : 'text-text-secondary hover:text-white'
                     }`}
                 >
-                    Overview
+                    <span className="sm:hidden">📊</span>
+                    <span className="hidden sm:inline">Overview</span>
+                    <span className="sm:hidden ml-2">Overview</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('earnings')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
                         activeTab === 'earnings'
                             ? 'bg-primary text-white'
                             : 'text-text-secondary hover:text-white'
                     }`}
                 >
-                    Earnings Analytics
+                    <span className="sm:hidden">💰</span>
+                    <span className="hidden sm:inline">Earnings Analytics</span>
+                    <span className="sm:hidden ml-2">Analytics</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('withdrawal')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
                         activeTab === 'withdrawal'
                             ? 'bg-primary text-white'
                             : 'text-text-secondary hover:text-white'
                     }`}
                 >
-                    Withdraw Funds
+                    <span className="sm:hidden">🏦</span>
+                    <span className="hidden sm:inline">Withdraw Funds</span>
+                    <span className="sm:hidden ml-2">Withdraw</span>
                 </button>
             </div>
             
             {/* Tab Content */}
             {activeTab === 'overview' && (
                 <>
-                    {/* Earnings Graph */}
-                    <div className="bg-card p-6 rounded-2xl mb-8">
-                        <h2 className="text-xl font-satoshi font-bold mb-4">Earnings (7 days)</h2>
-                         <div className="flex items-center gap-3 mb-4">
-                            <span className="text-2xl">🗽</span>
-                            <p className="text-4xl font-bold text-primary">1,843 LIB</p>
+                    {/* Earnings Graph - Mobile Optimized */}
+                    <div className="bg-card p-4 sm:p-6 rounded-2xl mb-6 sm:mb-8">
+                        <h2 className="text-lg sm:text-xl font-satoshi font-bold mb-3 sm:mb-4">Earnings (7 days)</h2>
+                         <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <span className="text-xl sm:text-2xl">🗽</span>
+                            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary">1,843 LIB</p>
                          </div>
-                        <div style={{ width: '100%', height: 300 }}>
+                        <div style={{ width: '100%', height: window.innerWidth < 640 ? 250 : 300 }}>
                             <ResponsiveContainer>
-                                <AreaChart data={dashboardChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                <AreaChart 
+                                    data={dashboardChartData} 
+                                    margin={{ 
+                                        top: 10, 
+                                        right: window.innerWidth < 640 ? 10 : 30, 
+                                        left: window.innerWidth < 640 ? 0 : 0, 
+                                        bottom: 0 
+                                    }}
+                                >
                                    {renderGradient()}
                                     <CartesianGrid strokeDasharray="3 3" stroke="#37373b" />
-                                    <XAxis dataKey="name" stroke="#A0A0A0" />
-                                    <YAxis stroke="#A0A0A0" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1A1A1D', border: 'none', borderRadius: '10px' }} />
+                                    <XAxis 
+                                        dataKey="name" 
+                                        stroke="#A0A0A0" 
+                                        fontSize={window.innerWidth < 640 ? 10 : 12}
+                                        interval={window.innerWidth < 640 ? 1 : 0}
+                                    />
+                                    <YAxis 
+                                        stroke="#A0A0A0" 
+                                        fontSize={window.innerWidth < 640 ? 10 : 12}
+                                        width={window.innerWidth < 640 ? 40 : 60}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ 
+                                            backgroundColor: '#1A1A1D', 
+                                            border: 'none', 
+                                            borderRadius: '10px',
+                                            fontSize: window.innerWidth < 640 ? '12px' : '14px'
+                                        }} 
+                                    />
                                     <Area type="monotone" dataKey="earnings" stroke="#FF0050" fillOpacity={1} fill="url(#colorEarnings)" />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -127,13 +157,14 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                         <SubscriptionManager mode="creator" />
                     </div>
 
-                    {/* NFT Tier Management */}
-                    <div className="mb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-satoshi font-bold">NFT Access Tiers</h2>
+                    {/* NFT Tier Management - Mobile Optimized */}
+                    <div className="mb-6 sm:mb-8">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4">
+                            <h2 className="text-lg sm:text-xl font-satoshi font-bold">NFT Access Tiers</h2>
                             <Button
                                 variant="primary"
                                 onClick={() => setShowNFTForm(!showNFTForm)}
+                                className="w-full sm:w-auto text-sm sm:text-base min-h-[44px]"
                             >
                                 {showNFTForm ? 'Cancel' : 'Create NFT Tier'}
                             </Button>
@@ -148,9 +179,9 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                             </div>
                         )}
 
-                        {/* NFT Stats */}
-                        <div className="bg-card p-6 rounded-2xl">
-                            <h3 className="font-satoshi font-bold text-lg mb-4">NFT Tier Statistics</h3>
+                        {/* NFT Stats - Mobile Optimized */}
+                        <div className="bg-card p-4 sm:p-6 rounded-2xl">
+                            <h3 className="font-satoshi font-bold text-base sm:text-lg mb-3 sm:mb-4">NFT Tier Statistics</h3>
                             {loadingNFTStats ? (
                                 <div className="animate-pulse space-y-3">
                                     <div className="h-4 bg-border rounded"></div>
@@ -160,32 +191,32 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                             ) : nftStats.length > 0 ? (
                                 <div className="space-y-3">
                                     {nftStats.map((stat) => (
-                                        <div key={stat.tierId} className="flex items-center justify-between text-sm">
-                                            <span>Tier #{stat.tierId}</span>
-                                            <div className="flex gap-4 text-text-secondary">
-                                                <span>{stat.holderCount} holders</span>
-                                                <span>{stat.totalMinted}/{stat.maxSupply} minted</span>
-                                                <span className="text-green-400">{stat.revenueEth} ETH</span>
+                                        <div key={stat.tierId} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 text-xs sm:text-sm p-3 sm:p-0 bg-background/30 sm:bg-transparent rounded-lg sm:rounded-none">
+                                            <span className="font-medium">Tier #{stat.tierId}</span>
+                                            <div className="flex flex-wrap gap-2 sm:gap-4 text-text-secondary">
+                                                <span className="bg-card px-2 py-1 rounded text-xs sm:bg-transparent sm:px-0 sm:py-0 sm:text-sm">{stat.holderCount} holders</span>
+                                                <span className="bg-card px-2 py-1 rounded text-xs sm:bg-transparent sm:px-0 sm:py-0 sm:text-sm">{stat.totalMinted}/{stat.maxSupply} minted</span>
+                                                <span className="text-green-400 bg-card px-2 py-1 rounded text-xs sm:bg-transparent sm:px-0 sm:py-0 sm:text-sm">{stat.revenueEth} ETH</span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-text-secondary">No NFT tiers created yet. Create your first tier to get started!</p>
+                                <p className="text-text-secondary text-sm">No NFT tiers created yet. Create your first tier to get started!</p>
                             )}
                         </div>
                     </div>
 
-                    {/* Quick Stats Cards */}
-                    <div className="grid md:grid-cols-3 gap-8">
+                    {/* Quick Stats Cards - Mobile Optimized */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                         {/* Recent Uploads */}
-                        <div className="bg-card p-6 rounded-2xl">
-                            <h3 className="font-satoshi font-bold text-lg mb-4">Recent Uploads</h3>
-                            <div className="space-y-3">
+                        <div className="bg-card p-4 sm:p-6 rounded-2xl">
+                            <h3 className="font-satoshi font-bold text-base sm:text-lg mb-3 sm:mb-4">Recent Uploads</h3>
+                            <div className="space-y-2 sm:space-y-3">
                                 {['Video Title 1', 'Video Title 2', 'Video Title 3'].map((title, i) => (
-                                    <div key={title} className="flex items-center justify-between text-sm">
-                                        <span>{title}</span>
-                                        <span className="text-green-400 flex items-center gap-1">
+                                    <div key={title} className="flex items-center justify-between text-xs sm:text-sm p-2 sm:p-0 bg-background/20 sm:bg-transparent rounded sm:rounded-none">
+                                        <span className="truncate pr-2">{title}</span>
+                                        <span className="text-green-400 flex items-center gap-1 flex-shrink-0">
                                             <span>🗽</span>
                                             <span>{25 + i * 5} LIB</span>
                                         </span>
@@ -195,8 +226,8 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                         </div>
 
                         {/* NFT Holders Summary */}
-                        <div className="bg-card p-6 rounded-2xl">
-                            <h3 className="font-satoshi font-bold text-lg mb-4">NFT Holders</h3>
+                        <div className="bg-card p-4 sm:p-6 rounded-2xl">
+                            <h3 className="font-satoshi font-bold text-base sm:text-lg mb-3 sm:mb-4">NFT Holders</h3>
                             {loadingNFTStats ? (
                                 <div className="animate-pulse space-y-2">
                                     <div className="h-4 bg-border rounded"></div>
@@ -206,40 +237,42 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                             ) : nftStats.length > 0 ? (
                                 <div className="space-y-2">
                                     {nftStats.slice(0, 3).map((stat) => (
-                                        <p key={stat.tierId}>
+                                        <p key={stat.tierId} className="text-xs sm:text-sm p-2 sm:p-0 bg-background/20 sm:bg-transparent rounded sm:rounded-none">
                                             Tier #{stat.tierId}: {stat.holderCount} holders
                                         </p>
                                     ))}
                                     {nftStats.length > 3 && (
-                                        <p className="text-text-secondary text-sm">
+                                        <p className="text-text-secondary text-xs sm:text-sm">
                                             +{nftStats.length - 3} more tiers
                                         </p>
                                     )}
                                 </div>
                             ) : (
-                                <p className="text-text-secondary">No NFT holders yet</p>
+                                <p className="text-text-secondary text-xs sm:text-sm">No NFT holders yet</p>
                             )}
                         </div>
 
-                        {/* Quick Withdraw */}
-                         <div className="bg-card p-6 rounded-2xl flex flex-col justify-between">
-                            <h3 className="font-satoshi font-bold text-lg mb-4">Quick Actions</h3>
-                            <div className="space-y-3">
+                        {/* Quick Actions - Mobile Optimized */}
+                         <div className="bg-card p-4 sm:p-6 rounded-2xl flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+                            <h3 className="font-satoshi font-bold text-base sm:text-lg mb-3 sm:mb-4">Quick Actions</h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
                                 <Button 
                                     variant="primary" 
-                                    className="w-full flex items-center justify-center gap-2"
+                                    className="w-full flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm min-h-[44px]"
                                     onClick={() => setActiveTab('withdrawal')}
                                 >
                                     <span>💰</span>
-                                    <span>Withdraw Earnings</span>
+                                    <span className="hidden sm:inline">Withdraw Earnings</span>
+                                    <span className="sm:hidden">Withdraw</span>
                                 </Button>
                                 <Button 
                                     variant="secondary" 
-                                    className="w-full flex items-center justify-center gap-2"
+                                    className="w-full flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm min-h-[44px]"
                                     onClick={() => setActiveTab('earnings')}
                                 >
                                     <span>📊</span>
-                                    <span>View Analytics</span>
+                                    <span className="hidden sm:inline">View Analytics</span>
+                                    <span className="sm:hidden">Analytics</span>
                                 </Button>
                             </div>
                         </div>

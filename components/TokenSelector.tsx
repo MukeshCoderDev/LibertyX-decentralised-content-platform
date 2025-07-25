@@ -92,46 +92,46 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({
         </svg>
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown - Mobile Optimized */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
-          {/* Search */}
-          <div className="p-3 border-b border-border">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 sm:max-h-96 overflow-hidden">
+          {/* Search - Mobile Optimized */}
+          <div className="p-2 sm:p-3 border-b border-border">
             <input
               type="text"
               placeholder="Search tokens..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-background border border-border rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full bg-background border border-border rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary min-h-[40px]"
             />
           </div>
 
-          {/* Token List */}
-          <div className="max-h-80 overflow-y-auto">
+          {/* Token List - Mobile Optimized */}
+          <div className="max-h-64 sm:max-h-80 overflow-y-auto">
             {searchTerm ? (
               // Show filtered results
-              <div className="p-2">
+              <div className="p-1 sm:p-2">
                 {filteredTokens.length > 0 ? (
                   filteredTokens.map((token) => (
                     <button
                       key={token.symbol}
                       onClick={() => handleTokenSelect(token)}
-                      className="w-full flex items-center gap-3 p-2 hover:bg-background/50 rounded text-left"
+                      className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2 hover:bg-background/50 rounded text-left min-h-[44px]"
                     >
-                      <span className="text-lg">{token.icon}</span>
-                      <div className="flex-1">
-                        <div className="font-medium">{token.symbol}</div>
-                        <div className="text-sm text-text-secondary">{token.name}</div>
+                      <span className="text-base sm:text-lg flex-shrink-0">{token.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm sm:text-base truncate">{token.symbol}</div>
+                        <div className="text-xs sm:text-sm text-text-secondary truncate">{token.name}</div>
                       </div>
                       {showBalance && balances[token.symbol] && (
-                        <div className="text-sm text-green-400">
+                        <div className="text-xs sm:text-sm text-green-400 flex-shrink-0">
                           {formatBalance(token)}
                         </div>
                       )}
                     </button>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-text-secondary">
+                  <div className="p-4 text-center text-text-secondary text-sm">
                     No tokens found matching "{searchTerm}"
                   </div>
                 )}
@@ -142,25 +142,25 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({
                 const categoryTokens = getTokensByCategory(category as any);
                 return (
                   <div key={category}>
-                    <div className="px-3 py-2 text-xs font-medium text-text-secondary bg-background/30 border-b border-border">
+                    <div className="px-2 sm:px-3 py-2 text-xs font-medium text-text-secondary bg-background/30 border-b border-border sticky top-0">
                       {label}
                     </div>
-                    <div className="p-2">
+                    <div className="p-1 sm:p-2">
                       {categoryTokens.map((token) => (
                         <button
                           key={token.symbol}
                           onClick={() => handleTokenSelect(token)}
-                          className={`w-full flex items-center gap-3 p-2 hover:bg-background/50 rounded text-left ${
+                          className={`w-full flex items-center gap-2 sm:gap-3 p-2 hover:bg-background/50 rounded text-left min-h-[44px] ${
                             selectedToken === token.symbol ? 'bg-primary/20' : ''
                           }`}
                         >
-                          <span className="text-lg">{token.icon}</span>
-                          <div className="flex-1">
-                            <div className="font-medium">{token.symbol}</div>
-                            <div className="text-sm text-text-secondary">{token.name}</div>
+                          <span className="text-base sm:text-lg flex-shrink-0">{token.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm sm:text-base truncate">{token.symbol}</div>
+                            <div className="text-xs sm:text-sm text-text-secondary truncate">{token.name}</div>
                           </div>
                           {showBalance && balances[token.symbol] && (
-                            <div className="text-sm text-green-400">
+                            <div className="text-xs sm:text-sm text-green-400 flex-shrink-0">
                               {formatBalance(token)}
                             </div>
                           )}

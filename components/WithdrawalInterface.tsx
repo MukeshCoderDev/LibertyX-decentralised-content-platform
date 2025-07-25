@@ -173,8 +173,8 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
   }
 
   return (
-    <div className="bg-card p-6 rounded-2xl">
-      <h3 className="text-xl font-satoshi font-bold mb-6">Withdraw Earnings</h3>
+    <div className="bg-card p-4 sm:p-6 rounded-2xl">
+      <h3 className="text-lg sm:text-xl font-satoshi font-bold mb-4 sm:mb-6">Withdraw Earnings</h3>
       
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
@@ -199,7 +199,7 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
         />
       </div>
 
-      {/* Amount Input */}
+      {/* Amount Input - Mobile Optimized */}
       {selectedToken && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-text-secondary mb-2">
@@ -213,13 +213,13 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
               placeholder="0.0"
               step="0.000001"
               min="0"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 pr-16 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-3 pr-16 text-white focus:outline-none focus:ring-2 focus:ring-primary text-base min-h-[44px]"
               disabled={isWithdrawing}
             />
             <button
               type="button"
               onClick={handleMaxClick}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary text-sm font-medium hover:text-primary/80"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary text-sm font-medium hover:text-primary/80 px-2 py-1 min-h-[32px] min-w-[44px] flex items-center justify-center"
               disabled={isWithdrawing}
             >
               MAX
@@ -233,25 +233,25 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
         </div>
       )}
 
-      {/* Withdrawal Details */}
+      {/* Withdrawal Details - Mobile Optimized */}
       {selectedToken && withdrawalAmount && (
-        <div className="bg-background/50 rounded-lg p-4 mb-4">
-          <h4 className="font-medium mb-2">Withdrawal Summary</h4>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
+        <div className="bg-background/50 rounded-lg p-3 sm:p-4 mb-4">
+          <h4 className="font-medium mb-2 text-sm sm:text-base">Withdrawal Summary</h4>
+          <div className="space-y-2 text-xs sm:text-sm">
+            <div className="flex justify-between items-center">
               <span className="text-text-secondary">Amount:</span>
-              <span>{withdrawalAmount} {selectedToken}</span>
+              <span className="font-medium">{withdrawalAmount} {selectedToken}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-text-secondary">Network Fee:</span>
               <span className="text-text-secondary">~0.001 ETH</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-start sm:items-center">
               <span className="text-text-secondary">Destination:</span>
-              <span className="text-text-secondary">Your connected wallet</span>
+              <span className="text-text-secondary text-right text-xs">Your connected wallet</span>
             </div>
             <hr className="border-border my-2" />
-            <div className="flex justify-between font-medium">
+            <div className="flex justify-between items-center font-medium">
               <span>You will receive:</span>
               <span className="text-green-400">{withdrawalAmount} {selectedToken}</span>
             </div>
@@ -259,10 +259,10 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
         </div>
       )}
 
-      {/* Revenue Split Info */}
-      <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
-        <h4 className="font-medium mb-2 text-primary">Revenue Split Information</h4>
-        <div className="text-sm text-text-secondary space-y-1">
+      {/* Revenue Split Info - Mobile Optimized */}
+      <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+        <h4 className="font-medium mb-2 text-primary text-sm sm:text-base">Revenue Split Information</h4>
+        <div className="text-xs sm:text-sm text-text-secondary space-y-1">
           <p>• Creator receives: <span className="text-green-400 font-medium">90%</span> of all payments</p>
           <p>• Platform fee: <span className="text-primary font-medium">10%</span> goes to DAO treasury</p>
           <p>• Revenue is automatically split when payments are received</p>
@@ -270,25 +270,28 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
         </div>
       </div>
 
-      {/* Withdraw Button */}
+      {/* Withdraw Button - Mobile Optimized */}
       <Button
         variant="primary"
         onClick={handleWithdraw}
         disabled={!selectedToken || !withdrawalAmount || isWithdrawing || parseFloat(withdrawalAmount) <= 0}
-        className="w-full"
+        className="w-full min-h-[48px] text-sm sm:text-base"
       >
         {isWithdrawing ? (
           <div className="flex items-center justify-center gap-2">
             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-            Processing Withdrawal...
+            <span className="hidden sm:inline">Processing Withdrawal...</span>
+            <span className="sm:hidden">Processing...</span>
           </div>
         ) : (
-          `Withdraw ${withdrawalAmount || '0'} ${selectedToken || 'Token'}`
+          <span className="truncate">
+            Withdraw {withdrawalAmount || '0'} {selectedToken || 'Token'}
+          </span>
         )}
       </Button>
 
-      {/* Help Text */}
-      <div className="mt-4 text-xs text-text-secondary">
+      {/* Help Text - Mobile Optimized */}
+      <div className="mt-3 sm:mt-4 text-xs text-text-secondary space-y-1">
         <p>• Withdrawals are processed immediately on-chain</p>
         <p>• Network fees apply for all transactions</p>
         <p>• Funds will appear in your connected wallet after confirmation</p>

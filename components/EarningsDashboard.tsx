@@ -211,20 +211,20 @@ const EarningsDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with Controls */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-satoshi font-bold">Earnings Dashboard</h2>
-        <div className="flex gap-2">
+      {/* Header with Controls - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0">
+        <h2 className="text-xl sm:text-2xl font-satoshi font-bold">Earnings Dashboard</h2>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
           <select
             value={selectedTimeframe}
             onChange={(e) => setSelectedTimeframe(e.target.value as '7d' | '30d' | '90d')}
-            className="bg-card border border-border rounded-lg px-3 py-2 text-sm"
+            className="bg-card border border-border rounded-lg px-3 py-2 text-sm min-h-[44px] w-full sm:w-auto"
           >
             <option value="7d">Last 7 days</option>
             <option value="30d">Last 30 days</option>
             <option value="90d">Last 90 days</option>
           </select>
-          <div className="min-w-[200px]">
+          <div className="min-w-full sm:min-w-[200px]">
             <TokenSelector
               selectedToken={selectedToken}
               onTokenSelect={setSelectedToken}
@@ -234,47 +234,55 @@ const EarningsDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-card p-6 rounded-2xl">
-          <h3 className="text-sm font-medium text-text-secondary mb-2">Total Earnings</h3>
+      {/* Summary Cards - Mobile Optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-card p-4 sm:p-6 rounded-2xl">
+          <h3 className="text-xs sm:text-sm font-medium text-text-secondary mb-2">Total Earnings</h3>
           <div className="space-y-1">
             {earningsData.totalEarnings.map((balance, index) => (
-              <p key={index} className="text-2xl font-bold text-primary flex items-center gap-2">
-                {balance.icon && <span>{balance.icon}</span>}
-                {formatTokenBalance(balance)}
+              <p key={index} className="text-lg sm:text-xl lg:text-2xl font-bold text-primary flex items-center gap-2">
+                {balance.icon && <span className="text-base sm:text-lg lg:text-xl">{balance.icon}</span>}
+                <span className="truncate">{formatTokenBalance(balance)}</span>
               </p>
             ))}
           </div>
         </div>
 
-        <div className="bg-card p-6 rounded-2xl">
-          <h3 className="text-sm font-medium text-text-secondary mb-2">Available to Withdraw</h3>
+        <div className="bg-card p-4 sm:p-6 rounded-2xl">
+          <h3 className="text-xs sm:text-sm font-medium text-text-secondary mb-2">Available to Withdraw</h3>
           <div className="space-y-1">
             {earningsData.availableBalance.map((balance, index) => (
-              <p key={index} className="text-2xl font-bold text-green-400 flex items-center gap-2">
-                {balance.icon && <span>{balance.icon}</span>}
-                {formatTokenBalance(balance)}
+              <p key={index} className="text-lg sm:text-xl lg:text-2xl font-bold text-green-400 flex items-center gap-2">
+                {balance.icon && <span className="text-base sm:text-lg lg:text-xl">{balance.icon}</span>}
+                <span className="truncate">{formatTokenBalance(balance)}</span>
               </p>
             ))}
           </div>
         </div>
 
-        <div className="bg-card p-6 rounded-2xl">
-          <h3 className="text-sm font-medium text-text-secondary mb-2">Revenue Split</h3>
-          <div className="text-sm text-text-secondary">
+        <div className="bg-card p-4 sm:p-6 rounded-2xl sm:col-span-2 lg:col-span-1">
+          <h3 className="text-xs sm:text-sm font-medium text-text-secondary mb-2">Revenue Split</h3>
+          <div className="text-sm text-text-secondary grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-0">
             <p>Creator: <span className="text-green-400 font-medium">90%</span></p>
             <p>Platform: <span className="text-primary font-medium">10%</span></p>
           </div>
         </div>
       </div>
 
-      {/* Earnings Chart */}
-      <div className="bg-card p-6 rounded-2xl">
-        <h3 className="text-lg font-satoshi font-bold mb-4">Earnings Over Time</h3>
-        <div style={{ width: '100%', height: 300 }}>
+      {/* Earnings Chart - Mobile Optimized */}
+      <div className="bg-card p-4 sm:p-6 rounded-2xl">
+        <h3 className="text-base sm:text-lg font-satoshi font-bold mb-3 sm:mb-4">Earnings Over Time</h3>
+        <div style={{ width: '100%', height: window.innerWidth < 640 ? 250 : window.innerWidth < 1024 ? 280 : 300 }}>
           <ResponsiveContainer>
-            <AreaChart data={earningsData.dailyEarnings}>
+            <AreaChart 
+              data={earningsData.dailyEarnings}
+              margin={{ 
+                top: 10, 
+                right: window.innerWidth < 640 ? 5 : 20, 
+                left: window.innerWidth < 640 ? 5 : 10, 
+                bottom: 0 
+              }}
+            >
               <defs>
                 <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#FF0050" stopOpacity={0.8}/>
@@ -282,10 +290,27 @@ const EarningsDashboard: React.FC = () => {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#37373b" />
-              <XAxis dataKey="date" stroke="#A0A0A0" />
-              <YAxis stroke="#A0A0A0" />
+              <XAxis 
+                dataKey="date" 
+                stroke="#A0A0A0" 
+                fontSize={window.innerWidth < 640 ? 10 : 12}
+                interval={window.innerWidth < 640 ? 1 : 0}
+                angle={window.innerWidth < 640 ? -45 : 0}
+                textAnchor={window.innerWidth < 640 ? 'end' : 'middle'}
+                height={window.innerWidth < 640 ? 60 : 30}
+              />
+              <YAxis 
+                stroke="#A0A0A0" 
+                fontSize={window.innerWidth < 640 ? 10 : 12}
+                width={window.innerWidth < 640 ? 35 : 60}
+              />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1A1A1D', border: 'none', borderRadius: '10px' }}
+                contentStyle={{ 
+                  backgroundColor: '#1A1A1D', 
+                  border: 'none', 
+                  borderRadius: '10px',
+                  fontSize: window.innerWidth < 640 ? '12px' : '14px'
+                }}
                 formatter={(value: number) => [formatCurrency(value, selectedToken), 'Earnings']}
               />
               <Area 
@@ -300,58 +325,63 @@ const EarningsDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Revenue Sources */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card p-6 rounded-2xl">
-          <h3 className="text-lg font-satoshi font-bold mb-4">Revenue by Source</h3>
-          <div style={{ width: '100%', height: 200 }}>
+      {/* Revenue Sources - Mobile Optimized */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-card p-4 sm:p-6 rounded-2xl">
+          <h3 className="text-base sm:text-lg font-satoshi font-bold mb-3 sm:mb-4">Revenue by Source</h3>
+          <div style={{ width: '100%', height: window.innerWidth < 640 ? 180 : 200 }}>
             <ResponsiveContainer>
               <PieChart>
                 <Pie
                   data={earningsData.revenueBySource}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={window.innerWidth < 640 ? 45 : 60}
+                  outerRadius={window.innerWidth < 640 ? 65 : 80}
                   dataKey="amount"
                 >
                   {earningsData.revenueBySource.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => formatCurrency(value, selectedToken)} />
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value, selectedToken)}
+                  contentStyle={{
+                    fontSize: window.innerWidth < 640 ? '12px' : '14px'
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="space-y-2 mt-4">
+          <div className="space-y-2 mt-3 sm:mt-4">
             {earningsData.revenueBySource.map((source, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
+              <div key={index} className="flex items-center justify-between text-xs sm:text-sm p-2 sm:p-0 bg-background/20 sm:bg-transparent rounded sm:rounded-none">
                 <div className="flex items-center gap-2">
                   <div 
-                    className="w-3 h-3 rounded-full" 
+                    className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0" 
                     style={{ backgroundColor: source.color }}
                   ></div>
-                  <span>{source.source}</span>
+                  <span className="truncate">{source.source}</span>
                 </div>
-                <span className="font-medium">{source.percentage.toFixed(1)}%</span>
+                <span className="font-medium flex-shrink-0">{source.percentage.toFixed(1)}%</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recent Transactions */}
-        <div className="bg-card p-6 rounded-2xl">
-          <h3 className="text-lg font-satoshi font-bold mb-4">Recent Transactions</h3>
-          <div className="space-y-3 max-h-64 overflow-y-auto">
+        {/* Recent Transactions - Mobile Optimized */}
+        <div className="bg-card p-4 sm:p-6 rounded-2xl">
+          <h3 className="text-base sm:text-lg font-satoshi font-bold mb-3 sm:mb-4">Recent Transactions</h3>
+          <div className="space-y-2 sm:space-y-3 max-h-64 overflow-y-auto">
             {earningsData.recentTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between text-sm">
-                <div>
+              <div key={tx.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 text-xs sm:text-sm p-3 sm:p-0 bg-background/20 sm:bg-transparent rounded sm:rounded-none">
+                <div className="flex-1">
                   <p className="font-medium">{tx.type.replace('_', ' ').toUpperCase()}</p>
                   <p className="text-text-secondary text-xs">
                     {new Date(tx.timestamp).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="flex justify-between sm:block sm:text-right">
                   <p className="text-green-400 font-medium">
                     +{formatTokenBalance(tx.amount)}
                   </p>
@@ -367,7 +397,7 @@ const EarningsDashboard: React.FC = () => {
               </div>
             ))}
             {earningsData.recentTransactions.length === 0 && (
-              <p className="text-text-secondary text-center py-4">No transactions yet</p>
+              <p className="text-text-secondary text-center py-4 text-xs sm:text-sm">No transactions yet</p>
             )}
           </div>
         </div>
