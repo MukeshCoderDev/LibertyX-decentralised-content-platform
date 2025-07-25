@@ -7,7 +7,8 @@ export const useContractManager = (): ContractManager | null => {
   const walletContext = useContext(WalletContext);
   
   if (!walletContext) {
-    throw new Error('useContractManager must be used within a WalletProvider');
+    console.error('useContractManager must be used within a WalletProvider');
+    return null;
   }
 
   const { signer, provider, chainId, isConnected } = walletContext;
@@ -40,7 +41,7 @@ export const useContractManager = (): ContractManager | null => {
       console.error('useContractManager: Failed to create contract manager:', error);
       return null;
     }
-  }, [signer, provider, chainId, isConnected]);
+  }, [chainId, isConnected, !!signer, !!provider]); // Use boolean flags instead of objects
 
   return contractManager;
 };

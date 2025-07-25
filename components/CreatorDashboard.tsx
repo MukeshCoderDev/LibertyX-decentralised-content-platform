@@ -3,6 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { NavigationProps } from '../types';
 import { dashboardChartData } from '../lib/mock-data';
 import Button from './ui/Button';
+import SubscriptionManager from './SubscriptionManager';
 
 const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
 
@@ -35,6 +36,11 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
+            </div>
+
+            {/* Subscription Management */}
+            <div className="mb-8">
+                <SubscriptionManager mode="creator" />
             </div>
 
             {/* Other Cards */}

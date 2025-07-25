@@ -77,7 +77,8 @@ class ContractManager implements IContractManager {
   public async executeTransaction(
     contractName: keyof Chain['contracts'],
     method: string,
-    params: any[]
+    params: any[],
+    options?: { value?: string }
   ): Promise<TransactionResult> {
     console.log(`executeTransaction called: ${contractName}.${method}`);
     console.log('Parameters:', params);
@@ -103,17 +104,25 @@ class ContractManager implements IContractManager {
       }
 
       console.log(`Executing transaction: ${contractName}.${method}(${params.join(', ')})`);
+      console.log('Transaction options:', options);
+      
+      // Prepare transaction options
+      const txOptions: any = {};
+      if (options?.value) {
+        txOptions.value = options.value;
+        console.log('Transaction value:', options.value);
+      }
       
       // Estimate gas first
       try {
-        const gasEstimate = await contract[method].estimateGas(...params);
+        const gasEstimate = await contract[method].estimateGas(...params, txOptions);
         console.log('Gas estimate:', gasEstimate.toString());
       } catch (gasError) {
         console.warn('Gas estimation failed:', gasError);
         // Continue anyway, let the transaction fail if needed
       }
 
-      const transactionResponse: ethers.ContractTransactionResponse = await contract[method](...params);
+      const transactionResponse: ethers.ContractTransactionResponse = await contract[method](...params, txOptions);
       console.log('Transaction sent successfully!');
       console.log('Transaction hash:', transactionResponse.hash);
       console.log('Transaction response:', transactionResponse);

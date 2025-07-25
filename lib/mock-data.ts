@@ -4,6 +4,7 @@ export const exploreFeedData: ContentCardData[] = Array.from({ length: 20 }).map
   id: i + 1,
   creatorAvatar: `https://i.pravatar.cc/40?u=${i}`,
   creatorName: `Creator ${i + 1}`,
+  creatorAddress: `0x${Math.random().toString(16).substr(2, 40)}`, // Mock address
   thumbnail: `https://picsum.photos/seed/${i + 1}/360/640`,
   price: parseFloat((Math.random() * 20).toFixed(2)),
   likes: Math.floor(Math.random() * 5000) + 100,
@@ -11,6 +12,7 @@ export const exploreFeedData: ContentCardData[] = Array.from({ length: 20 }).map
   isHD: Math.random() > 0.3,
   isVR: Math.random() > 0.8,
   category: ['Solo', 'Couple', 'Toy Play', 'Exclusive'][i % 4],
+  accessLevel: i % 3 === 0 ? 'subscription' : 'public', // Some content requires subscription
 }));
 
 export const dashboardChartData: ChartData[] = [
@@ -24,7 +26,7 @@ export const dashboardChartData: ChartData[] = [
 ];
 
 export const walletBalances: TokenBalance[] = [
-    { symbol: 'LIBERTY', balance: 1500.50, usdValue: 750.25 },
-    { symbol: 'ETH', balance: 2.5, usdValue: 8750.00 },
-    { symbol: 'USDC', balance: 520.10, usdValue: 520.10 },
+    { amount: '1500.50', token: 'LIBERTY', decimals: 18, symbol: 'LIB' },
+    { amount: '2.5', token: 'ETH', decimals: 18, symbol: 'ETH' },
+    { amount: '520.10', token: 'USDC', decimals: 6, symbol: 'USDC' },
 ];

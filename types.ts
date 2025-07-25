@@ -16,6 +16,7 @@ export interface ContentCardData {
   id: number;
   creatorAvatar: string;
   creatorName: string;
+  creatorAddress?: string;
   thumbnail: string;
   price: number;
   likes: number;
@@ -23,6 +24,7 @@ export interface ContentCardData {
   isHD: boolean;
   isVR: boolean;
   category: string;
+  accessLevel?: 'public' | 'subscription' | 'nft' | 'premium';
 }
 
 export interface ChartData {
@@ -36,4 +38,18 @@ export interface TokenBalance {
     decimals: number;
     symbol: string;
     icon?: string;
+}
+
+export interface SubscriptionPlan {
+    priceWei: string;
+    duration: number; // in seconds
+    priceEth: string; // formatted price in ETH
+    durationDays: number; // duration in days for display
+    isActive: boolean;
+}
+
+export interface SubscriptionStatus {
+    expiresAt: number;
+    isActive: boolean;
+    daysRemaining: number;
 }

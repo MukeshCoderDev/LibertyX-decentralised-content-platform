@@ -4,6 +4,7 @@ import { useCreatorRegistry } from '../hooks/useCreatorRegistry';
 import Button from './ui/Button';
 import CreatorRegistrationForm from './CreatorRegistrationForm';
 import SimpleRegistrationForm from './SimpleRegistrationForm';
+import CreatorSubscriptionPlans from './CreatorSubscriptionPlans';
 import { Link } from 'react-router-dom'; // Assuming react-router-dom for navigation
 
 interface CreatorProfileProps {
@@ -164,6 +165,16 @@ const CreatorProfile: React.FC<CreatorProfileProps> = ({ creatorAddress }) => {
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">About Me</h2>
         <p className="text-gray-700">{creatorProfile.bio}</p>
+      </div>
+
+      {/* Subscription Plans */}
+      <div className="mb-8">
+        <CreatorSubscriptionPlans
+          creatorAddress={targetAddress!}
+          creatorName={creatorProfile.handle}
+          creatorAvatar={creatorProfile.avatarURI}
+          isOwnProfile={account === targetAddress}
+        />
       </div>
 
       {/* Placeholder for Earnings and other analytics */}

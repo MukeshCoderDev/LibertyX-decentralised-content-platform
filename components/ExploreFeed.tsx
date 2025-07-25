@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Page, NavigationProps } from '../types';
 import ContentCard from './ContentCard';
+import SimpleContentCard from './SimpleContentCard';
+import ErrorBoundary from './ErrorBoundary';
 import { exploreFeedData } from '../lib/mock-data';
 import VerifiedIcon from './icons/VerifiedIcon';
 import HDIcon from './icons/HDIcon';
@@ -52,7 +54,11 @@ const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
       {/* Infinite Scroll Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {exploreFeedData.map(item => (
-          <ContentCard key={item.id} item={item} onNavigate={onNavigate} />
+          <ErrorBoundary key={item.id} fallback={
+            <SimpleContentCard item={item} onNavigate={onNavigate} />
+          }>
+            <ContentCard item={item} onNavigate={onNavigate} />
+          </ErrorBoundary>
         ))}
       </div>
        {/* Load More - for infinite scroll simulation */}
