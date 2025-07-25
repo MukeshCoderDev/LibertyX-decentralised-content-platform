@@ -4,6 +4,7 @@ import { useWallet } from '../lib/WalletProvider';
 import { useSubscriptionManager } from '../hooks/useSubscriptionManager';
 import { useNFTAccess } from '../hooks/useNFTAccess';
 import HeartIcon from './icons/HeartIcon';
+import PriceDisplay from './PriceDisplay';
 
 interface ContentCardProps extends NavigationProps {
   item: ContentCardData & {
@@ -130,9 +131,11 @@ const ContentCard: React.FC<ContentCardProps> = ({ item, onNavigate }) => {
             {isCheckingAccess ? '...' : hasAccess ? '✓ Premium' : '💎 Premium Only'}
           </div>
         )}
-        <div className="bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">
-          ${item.price.toFixed(2)}
-        </div>
+        <PriceDisplay 
+          price={item.price} 
+          size="medium" 
+          animate={true}
+        />
       </div>
 
       {/* Like Count */}

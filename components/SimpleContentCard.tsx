@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ContentCardData, Page, NavigationProps } from '../types';
 import HeartIcon from './icons/HeartIcon';
+import PriceDisplay from './PriceDisplay';
 
 interface SimpleContentCardProps extends NavigationProps {
   item: ContentCardData;
@@ -31,8 +32,12 @@ const SimpleContentCard: React.FC<SimpleContentCardProps> = ({ item, onNavigate 
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20"></div>
 
       {/* Price Tag */}
-      <div className="absolute top-4 right-4 bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">
-        ${item.price.toFixed(2)}
+      <div className="absolute top-4 right-4">
+        <PriceDisplay 
+          price={item.price} 
+          size="small" 
+          animate={true}
+        />
       </div>
 
       {/* Like Count */}

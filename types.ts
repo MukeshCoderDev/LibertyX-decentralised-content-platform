@@ -12,13 +12,21 @@ export interface NavigationProps {
   onNavigate: (page: Page) => void;
 }
 
+export interface TokenPrice {
+  amount: string; // Using string to handle large numbers and decimals
+  token: string;
+  decimals: number;
+  symbol: string;
+  icon?: string;
+}
+
 export interface ContentCardData {
   id: number;
   creatorAvatar: string;
   creatorName: string;
   creatorAddress?: string;
   thumbnail: string;
-  price: number;
+  price: TokenPrice; // Changed from number to TokenPrice
   likes: number;
   isVerified: boolean;
   isHD: boolean;

@@ -1,14 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavigationProps, Page } from '../types';
+import { NavigationProps, Page, TokenPrice } from '../types';
 import Button from './ui/Button';
 import Toggle from './ui/Toggle';
 import Modal from './ui/Modal';
 import { useArweave } from '../hooks/useArweave';
 import { ContentMetadata } from '../lib/arweaveConfig';
+import CryptoPriceInput from './CryptoPriceInput';
 
 const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
     const [step, setStep] = useState(1);
-    const [price, setPrice] = useState(10);
+    const [price, setPrice] = useState<TokenPrice>({
+        amount: (10 * Math.pow(10, 18)).toFixed(0), // 10 LIB in wei
+        token: 'LIB',
+        decimals: 18,
+        symbol: 'LIB'
+    });
     const [isEncrypted, setIsEncrypted] = useState(true);
     const [selectedThumb, setSelectedThumb] = useState(1);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -121,7 +127,7 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
             title: title.trim(),
             description: description.trim() || 'No description provided',
             contentType: selectedFile.type,
-            price: (price * 1e18).toString(), // Convert to wei
+            price: price.amount, // Price is already in wei format
             accessLevel: isEncrypted ? 'premium' : 'public',
             tags: ['video', 'content', 'libertyx'],
             thumbnail: thumbnails[selectedThumb - 1] || '',
@@ -276,21 +282,10 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
                         
                         <div className="space-y-6">
                             <div>
-                                <label htmlFor="price-slider" className="block text-lg font-satoshi mb-2">Set Price</label>
-                                <div className="flex items-center gap-4">
-                                    <input 
-                                        id="price-slider" 
-                                        type="range" 
-                                        min="1" 
-                                        max="100" 
-                                        value={price} 
-                                        onChange={(e) => setPrice(Number(e.target.value))}
-                                        className="flex-1"
-                                    />
-                                    <span className="font-bold text-primary text-xl w-20 text-center">
-                                        ${price.toFixed(2)}
-                                    </span>
-                                </div>
+                                <CryptoPriceInput
+                                    price={price}
+                                    onPriceChange={setPrice}
+                                />
                             </div>
                             
                             <Toggle 

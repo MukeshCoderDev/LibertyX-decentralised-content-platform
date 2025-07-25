@@ -7,11 +7,13 @@ import { exploreFeedData } from '../lib/mock-data';
 import VerifiedIcon from './icons/VerifiedIcon';
 import HDIcon from './icons/HDIcon';
 import VRIcon from './icons/VRIcon';
+import CryptoPriceRangeSelector from './CryptoPriceRangeSelector';
 
 const categories = ['All', 'Verified', 'HD', 'VR', 'Solo', 'Couple'];
 
 const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
-  const [price, setPrice] = useState(50);
+  const [maxPrice, setMaxPrice] = useState(100);
+  const [selectedToken, setSelectedToken] = useState('LIB');
   const [activeCategory, setActiveCategory] = useState('All');
   const [displayedItems, setDisplayedItems] = useState(12); // Show 12 items initially
 
@@ -36,19 +38,13 @@ const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-4 px-2">
-            <label htmlFor="price" className="font-satoshi text-sm text-text-secondary whitespace-nowrap">Price Max</label>
-            <input
-              id="price"
-              type="range"
-              min="0"
-              max="100"
-              value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
-              className="w-full"
-            />
-            <span className="font-satoshi text-primary font-bold w-12 text-right">${price}</span>
-          </div>
+          <CryptoPriceRangeSelector
+            selectedToken={selectedToken}
+            maxPrice={maxPrice}
+            onTokenChange={setSelectedToken}
+            onPriceChange={setMaxPrice}
+            className="px-2"
+          />
         </div>
       </div>
 

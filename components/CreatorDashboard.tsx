@@ -58,7 +58,10 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
             {/* Earnings Graph */}
             <div className="bg-card p-6 rounded-2xl mb-8">
                 <h2 className="text-xl font-satoshi font-bold mb-4">Earnings (7 days)</h2>
-                 <p className="text-4xl font-bold text-primary mb-4">$18,430.00</p>
+                 <div className="flex items-center gap-3 mb-4">
+                    <span className="text-2xl">🗽</span>
+                    <p className="text-4xl font-bold text-primary">1,843 LIB</p>
+                 </div>
                 <div style={{ width: '100%', height: 300 }}>
                     <ResponsiveContainer>
                         <AreaChart data={dashboardChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -133,10 +136,13 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                 <div className="bg-card p-6 rounded-2xl">
                     <h3 className="font-satoshi font-bold text-lg mb-4">Recent Uploads</h3>
                     <div className="space-y-3">
-                        {['Video Title 1', 'Video Title 2', 'Video Title 3'].map(title => (
+                        {['Video Title 1', 'Video Title 2', 'Video Title 3'].map((title, i) => (
                             <div key={title} className="flex items-center justify-between text-sm">
                                 <span>{title}</span>
-                                <span className="text-green-400">$250.50</span>
+                                <span className="text-green-400 flex items-center gap-1">
+                                    <span>🗽</span>
+                                    <span>{25 + i * 5} LIB</span>
+                                </span>
                             </div>
                         ))}
                     </div>
@@ -173,7 +179,10 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                  <div className="bg-card p-6 rounded-2xl flex flex-col justify-between">
                     <h3 className="font-satoshi font-bold text-lg mb-4">Withdraw Earnings</h3>
                     <p className="text-text-secondary mb-4">Available balance can be withdrawn to your connected wallet.</p>
-                    <Button variant="primary">Withdraw $18,430</Button>
+                    <Button variant="primary" className="flex items-center justify-center gap-2">
+                        <span>🗽</span>
+                        <span>Withdraw 1,843 LIB</span>
+                    </Button>
                 </div>
             </div>
         </div>

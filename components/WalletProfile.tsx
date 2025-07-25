@@ -38,18 +38,28 @@ const WalletProfile: React.FC = () => {
             <div className="bg-card p-6 rounded-2xl mb-8">
                 <h2 className="text-xl font-satoshi font-bold mb-4">Token Balances</h2>
                 <div className="space-y-4">
-                    {walletBalances.map(token => (
-                        <div key={token.symbol} className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <TokenIcon symbol={token.symbol} />
-                                <div>
-                                    <p className="font-bold">{token.symbol}</p>
-                                    <p className="text-sm text-text-secondary">${token.usdValue.toFixed(2)}</p>
+                    {walletBalances.map(token => {
+                        // Convert from wei to token units for display
+                        const tokenAmount = parseFloat(token.amount) / Math.pow(10, token.decimals);
+                        
+                        return (
+                            <div key={token.symbol} className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <TokenIcon symbol={token.symbol} />
+                                    <div>
+                                        <p className="font-bold">{token.symbol}</p>
+                                        <p className="text-sm text-text-secondary">{token.token}</p>
+                                    </div>
                                 </div>
+                                <p className="font-mono">
+                                    {tokenAmount >= 1000 
+                                        ? `${(tokenAmount / 1000).toFixed(2)}K` 
+                                        : tokenAmount.toFixed(4)
+                                    }
+                                </p>
                             </div>
-                            <p className="font-mono">{token.balance.toFixed(4)}</p>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
