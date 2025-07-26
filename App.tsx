@@ -11,6 +11,10 @@ import WalletProfile from './components/WalletProfile'; // Keep for now, might b
 import CreatorProfile from './components/CreatorProfile'; // Import new CreatorProfile
 import CreatorRegistrationForm from './components/CreatorRegistrationForm'; // Import new CreatorRegistrationForm
 import { GovernanceDashboard } from './components/GovernanceDashboard'; // Import governance dashboard
+import { RealTimeDataSync } from './components/RealTimeDataSync'; // Import real-time data sync
+import ErrorBoundary from './components/ErrorBoundary'; // Import error boundary
+// Temporarily commented out to fix import issues
+// import { NotificationProvider } from './components/NotificationSystem'; // Import notification system
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Landing);
@@ -50,22 +54,27 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {currentPage !== Page.Landing && (
-        <Header
-          onNavigate={navigate}
-          currentPage={currentPage}
-          onOpenRegistrationModal={() => setShowRegistrationModal(true)} // Pass setter to Header
-        />
-      )}
-      <main>{renderPage()}</main>
-      {showRegistrationModal && (
-        <CreatorRegistrationForm
-          onRegistrationSuccess={handleRegistrationSuccess}
-          onClose={() => setShowRegistrationModal(false)}
-        />
-      )}
-    </div>
+    <ErrorBoundary>
+      {/* Temporarily removed NotificationProvider to fix import issues */}
+      <RealTimeDataSync>
+        <div className="min-h-screen bg-background">
+          {currentPage !== Page.Landing && (
+            <Header
+              onNavigate={navigate}
+              currentPage={currentPage}
+              onOpenRegistrationModal={() => setShowRegistrationModal(true)} // Pass setter to Header
+            />
+          )}
+          <main>{renderPage()}</main>
+          {showRegistrationModal && (
+            <CreatorRegistrationForm
+              onRegistrationSuccess={handleRegistrationSuccess}
+              onClose={() => setShowRegistrationModal(false)}
+            />
+          )}
+        </div>
+      </RealTimeDataSync>
+    </ErrorBoundary>
   );
 };
 

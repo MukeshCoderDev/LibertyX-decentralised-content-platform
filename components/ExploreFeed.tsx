@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback, useMemo } from 'react';
 import { Page, NavigationProps } from '../types';
 import ContentCard from './ContentCard';
 import SimpleContentCard from './SimpleContentCard';
@@ -11,11 +11,21 @@ import CryptoPriceRangeSelector from './CryptoPriceRangeSelector';
 
 const categories = ['All', 'Verified', 'HD', 'VR', 'Solo', 'Couple'];
 
-const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
+const ExploreFeed: React.FC<NavigationProps> = memo(({ onNavigate }) => {
   const [maxPrice, setMaxPrice] = useState(100);
   const [selectedToken, setSelectedToken] = useState('LIB');
   const [activeCategory, setActiveCategory] = useState('All');
   const [displayedItems, setDisplayedItems] = useState(12); // Show 12 items initially
+
+  // Memoize the filtered data to prevent unnecessary re-renders
+  const filteredData = useMemo(() => {
+    return exploreFeedData.slice(0, displayedItems);
+  }, [displayedItems]);
+
+  // Memoize the load more handler
+  const handleLoadMore = useCallback(() => {
+    setDisplayedItems(prev => Math.min(prev + 8, exploreFeedData.length));
+  }, []);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-20 md:mb-0">
@@ -50,7 +60,7 @@ const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
 
       {/* Infinite Scroll Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {exploreFeedData.slice(0, displayedItems).map(item => (
+        {filteredData.map(item => (
           <ErrorBoundary key={item.id} fallback={
             <SimpleContentCard item={item} onNavigate={onNavigate} />
           }>
@@ -62,7 +72,7 @@ const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
        {displayedItems < exploreFeedData.length && (
          <div className="text-center mt-12">
            <button 
-             onClick={() => setDisplayedItems(prev => Math.min(prev + 8, exploreFeedData.length))}
+             onClick={handleLoadMore}
              className="bg-card text-text-secondary px-6 py-3 rounded-full hover:bg-primary hover:text-white transition-colors"
            >
                Load More ({exploreFeedData.length - displayedItems} remaining)
@@ -71,7 +81,7 @@ const ExploreFeed: React.FC<NavigationProps> = ({ onNavigate }) => {
        )}
     </div>
   );
-};
+});
 
 export default ExploreFeed;
 

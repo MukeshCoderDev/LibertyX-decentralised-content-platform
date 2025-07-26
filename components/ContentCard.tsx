@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { ContentCardData, Page, NavigationProps } from '../types';
 import { useWallet } from '../lib/WalletProvider';
 import { useSubscriptionManager } from '../hooks/useSubscriptionManager';
@@ -14,7 +14,7 @@ interface ContentCardProps extends NavigationProps {
   };
 }
 
-const ContentCard: React.FC<ContentCardProps> = ({ item, onNavigate }) => {
+const ContentCard: React.FC<ContentCardProps> = memo(({ item, onNavigate }) => {
   const { account, isConnected } = useWallet();
   const { checkAccess } = useSubscriptionManager();
   const { checkNFTAccess } = useNFTAccess();
@@ -77,19 +77,19 @@ const ContentCard: React.FC<ContentCardProps> = ({ item, onNavigate }) => {
     checkContentAccess();
   }, [item.accessLevel, item.creatorAddress, item.nftTierRequired, account, isConnected, checkAccess, checkNFTAccess]);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsLiked(!isLiked);
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
-  };
+  }, [isLiked, likeCount]);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if ((item.accessLevel === 'subscription' || item.accessLevel === 'nft' || item.accessLevel === 'premium') && !hasAccess) {
       // Don't navigate if user doesn't have required access
       return;
     }
     onNavigate(Page.Watch);
-  };
+  }, [item.accessLevel, hasAccess, onNavigate]);
 
   return (
     <div
@@ -194,6 +194,6 @@ const ContentCard: React.FC<ContentCardProps> = ({ item, onNavigate }) => {
       )}
     </div>
   );
-};
+});
 
 export default ContentCard;

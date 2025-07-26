@@ -5,6 +5,13 @@ import { TokenBalance } from '../types';
 import { getAllTokens, getTokensByCategory, TOKEN_CATEGORIES, formatTokenAmount, getTokenConfig } from '../lib/tokenConfig';
 import TokenSelector from './TokenSelector';
 import Button from './ui/Button';
+// Temporarily commented out to fix import issues
+// import { TransactionFeedback, TransactionState } from './TransactionFeedback';
+// import { SuccessConfirmation, createSuccessConfig } from './SuccessConfirmation';
+// import { GasEstimator } from './GasEstimator';
+// Temporarily commented out to fix import issues
+// import { useTransactionNotifications } from './NotificationSystem';
+// import useErrorHandling from '../hooks/useErrorHandling';
 
 interface WithdrawalInterfaceProps {
   onWithdrawalComplete?: (txHash: string) => void;
@@ -29,6 +36,15 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  
+  // Enhanced error handling and transaction feedback (temporarily commented out)
+  // const [transactionState, setTransactionState] = useState<TransactionState>({ status: 'idle' });
+  // const [showSuccess, setShowSuccess] = useState(false);
+  // const [gasEstimate, setGasEstimate] = useState<any>(null);
+  
+  // Temporarily commented out to fix import issues
+  // const { notifyTransactionStarted, notifyTransactionSuccess } = useTransactionNotifications();
+  // const { handleTransactionError, handleInsufficientFunds, handleGasEstimationError } = useErrorHandling();
 
   useEffect(() => {
     if (account) {
@@ -95,6 +111,7 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
     const withdrawalAmountWei = parseFloat(withdrawalAmount) * Math.pow(10, selectedOption.decimals);
     const availableBalance = parseFloat(selectedOption.balance);
 
+    // Check for insufficient funds
     if (withdrawalAmountWei > availableBalance) {
       setError('Insufficient balance');
       return;
@@ -108,6 +125,8 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
     try {
       setIsWithdrawing(true);
       setError('');
+      
+      // Transaction state updates (temporarily commented out)
 
       let txHash: string;
 
@@ -123,8 +142,13 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
       
       txHash = `0x${Math.random().toString(16).substr(2, 64)}`; // Simulated tx hash
 
-      // Show success message
-      alert(`Withdrawal initiated successfully! Transaction hash: ${txHash}`);
+      // Transaction started (notification temporarily disabled)
+      
+      // Transaction state updates and confirmation simulation (temporarily commented out)
+      
+      // Success notification (temporarily disabled)
+      
+      // Success confirmation (temporarily commented out)
       
       // Reset form
       setWithdrawalAmount('');
@@ -139,7 +163,12 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
 
     } catch (error: any) {
       console.error('Withdrawal error:', error);
+      
+      // Error handling (temporarily simplified)
       setError(error.message || 'Withdrawal failed');
+      
+      // Transaction error state (temporarily commented out)
+      
     } finally {
       setIsWithdrawing(false);
     }
@@ -181,6 +210,35 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
           <p className="text-red-400 text-sm">{error}</p>
         </div>
       )}
+
+      {/* Transaction Feedback - Temporarily commented out */}
+      {/*
+      <TransactionFeedback
+        transaction={transactionState}
+        onRetry={() => handleWithdraw()}
+        onClose={() => setTransactionState({ status: 'idle' })}
+        className="mb-4"
+      />
+      */}
+
+      {/* Success Confirmation - Temporarily commented out */}
+      {/*
+      {showSuccess && transactionState.hash && (
+        <SuccessConfirmation
+          {...createSuccessConfig.withdrawal(
+            transactionState.hash,
+            withdrawalAmount,
+            selectedToken,
+            () => {
+              // Navigate to earnings dashboard
+              console.log('Navigate to earnings dashboard');
+            }
+          )}
+          onClose={() => setShowSuccess(false)}
+          className="mb-4"
+        />
+      )}
+      */}
 
       {/* Token Selection */}
       <div className="mb-4">
@@ -269,6 +327,20 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
           <p>• Withdrawals transfer your earned balance directly to your wallet</p>
         </div>
       </div>
+
+      {/* Gas Estimation - Temporarily commented out */}
+      {/*
+      {selectedToken && withdrawalAmount && parseFloat(withdrawalAmount) > 0 && (
+        <GasEstimator
+          onGasEstimate={setGasEstimate}
+          transactionData={{
+            to: account || '',
+            value: BigInt(0) // Withdrawal doesn't send ETH value
+          }}
+          className="mb-4"
+        />
+      )}
+      */}
 
       {/* Withdraw Button - Mobile Optimized */}
       <Button

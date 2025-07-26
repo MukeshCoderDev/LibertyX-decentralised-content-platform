@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { ContentCardData, Page, NavigationProps } from '../types';
 import HeartIcon from './icons/HeartIcon';
 import PriceDisplay from './PriceDisplay';
@@ -7,21 +7,21 @@ interface SimpleContentCardProps extends NavigationProps {
   item: ContentCardData;
 }
 
-const SimpleContentCard: React.FC<SimpleContentCardProps> = ({ item, onNavigate }) => {
+const SimpleContentCard: React.FC<SimpleContentCardProps> = memo(({ item, onNavigate }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(item.likes);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsLiked(!isLiked);
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
-  };
+  }, [isLiked, likeCount]);
 
   return (
     <div
       className="relative aspect-[9/16] w-full bg-card rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-[0_0_20px_5px_rgba(255,0,80,0.3)] hover:-translate-y-2"
-      onClick={() => onNavigate(Page.Watch)}
+      onClick={useCallback(() => onNavigate(Page.Watch), [onNavigate])}
     >
       <img
         src={item.thumbnail}
@@ -58,6 +58,6 @@ const SimpleContentCard: React.FC<SimpleContentCardProps> = ({ item, onNavigate 
       </div>
     </div>
   );
-};
+});
 
 export default SimpleContentCard;

@@ -5,6 +5,7 @@ import { useWallet, WalletType } from '../lib/WalletProvider';
 import EthIcon from './icons/EthIcon';
 import { SUPPORTED_CHAINS } from '../lib/blockchainConfig';
 import { Chain } from '../lib/web3-types';
+import { StableBalanceDisplay } from './StableBalanceDisplay';
 
 interface HeaderProps extends NavigationProps {
     currentPage: Page;
@@ -58,49 +59,88 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                     <div className="flex items-center space-x-4">
                         {isConnected ? (
                             <>
-                                <div className="hidden md:flex items-center space-x-2 bg-card p-2 rounded-lg text-sm">
-                                    <span className="text-text-secondary">Network:</span>
-                                    <div className="relative group">
-                                        <button
-                                            className="text-primary hover:underline"
-                                        >
-                                            {getNetworkName(currentChain)}
-                                        </button>
-                                        <div className="absolute left-0 mt-2 w-48 bg-card border border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            {SUPPORTED_CHAINS.map((chain) => (
-                                                <button
-                                                    key={chain.chainId}
-                                                    onClick={() => handleSwitchNetwork(chain.chainId)}
-                                                    className="block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-primary/20"
-                                                >
-                                                    {chain.name}
+                                {/* Desktop wallet info - organized in a cleaner layout */}
+                                <div className="hidden md:flex flex-col items-end space-y-1 bg-card p-3 rounded-lg text-sm min-w-[280px]">
+                                    {/* Top row: Network and Connection Status */}
+                                    <div className="flex items-center space-x-3 w-full justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-text-secondary">Network:</span>
+                                            <div className="relative group">
+                                                <button className="text-primary hover:underline font-medium">
+                                                    {getNetworkName(currentChain)}
                                                 </button>
-                                            ))}
+                                                <div className="absolute left-0 mt-2 w-48 bg-card border border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                                                    {SUPPORTED_CHAINS.map((chain) => (
+                                                        <button
+                                                            key={chain.chainId}
+                                                            onClick={() => handleSwitchNetwork(chain.chainId)}
+                                                            className="block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-primary/20"
+                                                        >
+                                                            {chain.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2 px-2 py-1 rounded-md text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/50">
+                                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                            <span>Connected</span>
                                         </div>
                                     </div>
-                                    <span className="text-text-secondary">|</span>
-                                    <span className="text-text-secondary">Balance:</span>
-                                    {ethBalance && (
-                                        <div className="flex items-center">
-                                            <EthIcon className="w-4 h-4 mr-1" />
-                                            <span>{parseFloat(ethBalance.balance).toFixed(4)} {ethBalance.symbol}</span>
+                                    
+                                    {/* Bottom row: Balance and Wallet Address */}
+                                    <div className="flex items-center space-x-4 w-full justify-between">
+                                        <div className="flex items-center space-x-3">
+                                            <span className="text-text-secondary">Balance:</span>
+                                            <StableBalanceDisplay 
+                                                tokenSymbol="LIB" 
+                                                size="small" 
+                                                className="text-white font-medium"
+                                            />
+                                            <span className="text-text-secondary">|</span>
+                                            <StableBalanceDisplay 
+                                                tokenSymbol={currentChain?.nativeCurrency.symbol || 'ETH'} 
+                                                size="small" 
+                                                className="text-white font-medium"
+                                            />
                                         </div>
-                                    )}
-                                    <span className="text-text-secondary">|</span>
-                                    <span className="text-primary">{truncateAddress(account)}</span>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-primary font-mono text-xs bg-primary/10 px-2 py-1 rounded">
+                                                {truncateAddress(account)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action buttons */}
+                                <div className="hidden md:flex items-center space-x-2">
+                                    <button
+                                        onClick={onOpenRegistrationModal}
+                                        className="px-4 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary-dark transition-colors text-sm"
+                                    >
+                                        Register as Creator
+                                    </button>
                                     <button
                                         onClick={disconnect}
-                                        className="ml-2 px-3 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 transition-colors"
+                                        className="px-3 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition-colors"
                                     >
                                         Disconnect
                                     </button>
                                 </div>
-                                <button
-                                    onClick={disconnect}
-                                    className="md:hidden px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition-colors"
-                                >
-                                    Disconnect
-                                </button>
+
+                                {/* Mobile simplified view */}
+                                <div className="md:hidden flex items-center space-x-2">
+                                    <div className="flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/50">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                        <span>Connected</span>
+                                    </div>
+                                    <button
+                                        onClick={disconnect}
+                                        className="px-3 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 transition-colors"
+                                    >
+                                        Disconnect
+                                    </button>
+                                </div>
                             </>
                         ) : ( // If not connected
                           <div className="flex items-center space-x-2">
@@ -114,15 +154,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                           </div>
                         )}
                         
-                        {/* Register as Creator button - show when connected */}
-                        {isConnected && (
-                          <button
-                            onClick={onOpenRegistrationModal}
-                            className="px-4 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary-dark transition-colors"
-                          >
-                            Register as Creator
-                          </button>
-                        )}
                         <div className="md:hidden">
                           {/* Mobile menu button could go here */}
                         </div>
