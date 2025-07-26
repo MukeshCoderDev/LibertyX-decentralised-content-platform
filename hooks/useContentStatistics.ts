@@ -246,10 +246,30 @@ export const useContentStatistics = (): ContentStatisticsHook => {
   // Listen for custom events from other parts of the app
   useEffect(() => {
     const handleContentInteraction = (event: CustomEvent) => {
-      const { contentId } = event.detail;
+      const { contentId, interactionType, duration } = event.detail;
       if (subscribedContent.current.has(contentId)) {
         refreshContentStats(contentId);
       }
+      
+      // Track interaction for analytics
+      const interaction = {
+        contentId,
+        interactionType,
+        duration,
+        timestamp: Date.now(),
+        userAddress: account
+      };
+      
+      // Store in local storage for analytics aggregation
+      const interactions = JSON.parse(localStorage.getItem('contentInteractions') || '[]');
+      interactions.push(interaction);
+      
+      // Keep only last 1000 interactions
+      if (interactions.length > 1000) {
+        interactions.splice(0, interactions.length - 1000);
+      }
+      
+      localStorage.setItem('contentInteractions', JSON.stringify(interactions));
     };
 
     const handleEarningsUpdate = (event: CustomEvent) => {
@@ -261,11 +281,13 @@ export const useContentStatistics = (): ContentStatisticsHook => {
 
     window.addEventListener('contentViewed', handleContentInteraction as EventListener);
     window.addEventListener('contentLiked', handleContentInteraction as EventListener);
+    window.addEventListener('contentInteraction', handleContentInteraction as EventListener);
     window.addEventListener('earningsUpdated', handleEarningsUpdate as EventListener);
 
     return () => {
       window.removeEventListener('contentViewed', handleContentInteraction as EventListener);
       window.removeEventListener('contentLiked', handleContentInteraction as EventListener);
+      window.removeEventListener('contentInteraction', handleContentInteraction as EventListener);
       window.removeEventListener('earningsUpdated', handleEarningsUpdate as EventListener);
     };
   }, [refreshContentStats, refreshCreatorStats, account]);

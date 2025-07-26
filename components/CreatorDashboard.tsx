@@ -10,6 +10,8 @@ import NFTTierCreationForm from './NFTTierCreationForm';
 import EarningsDashboard from './EarningsDashboard';
 import WithdrawalInterface from './WithdrawalInterface';
 import SupportedTokensDisplay from './SupportedTokensDisplay';
+import AdvancedAnalytics from './AdvancedAnalytics';
+import AudienceInsights from './AudienceInsights';
 
 const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
     const { account } = useWallet();
@@ -17,7 +19,7 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
     const [showNFTForm, setShowNFTForm] = useState(false);
     const [nftStats, setNftStats] = useState<NFTTierStats[]>([]);
     const [loadingNFTStats, setLoadingNFTStats] = useState(true);
-    const [activeTab, setActiveTab] = useState<'overview' | 'earnings' | 'withdrawal'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'earnings' | 'withdrawal' | 'analytics' | 'audience'>('overview');
 
     useEffect(() => {
         const loadNFTStats = async () => {
@@ -65,10 +67,10 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-satoshi font-bold mb-6 sm:mb-8">Creator Dashboard</h1>
             
             {/* Tab Navigation - Mobile Optimized */}
-            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 mb-6 sm:mb-8 bg-card rounded-lg p-1">
+            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 mb-6 sm:mb-8 bg-card rounded-lg p-1 overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('overview')}
-                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] whitespace-nowrap ${
                         activeTab === 'overview'
                             ? 'bg-primary text-white'
                             : 'text-text-secondary hover:text-white'
@@ -80,19 +82,43 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                 </button>
                 <button
                     onClick={() => setActiveTab('earnings')}
-                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] whitespace-nowrap ${
                         activeTab === 'earnings'
                             ? 'bg-primary text-white'
                             : 'text-text-secondary hover:text-white'
                     }`}
                 >
                     <span className="sm:hidden">💰</span>
-                    <span className="hidden sm:inline">Earnings Analytics</span>
+                    <span className="hidden sm:inline">Earnings</span>
+                    <span className="sm:hidden ml-2">Earnings</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('analytics')}
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] whitespace-nowrap ${
+                        activeTab === 'analytics'
+                            ? 'bg-primary text-white'
+                            : 'text-text-secondary hover:text-white'
+                    }`}
+                >
+                    <span className="sm:hidden">📈</span>
+                    <span className="hidden sm:inline">Advanced Analytics</span>
                     <span className="sm:hidden ml-2">Analytics</span>
                 </button>
                 <button
+                    onClick={() => setActiveTab('audience')}
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] whitespace-nowrap ${
+                        activeTab === 'audience'
+                            ? 'bg-primary text-white'
+                            : 'text-text-secondary hover:text-white'
+                    }`}
+                >
+                    <span className="sm:hidden">👥</span>
+                    <span className="hidden sm:inline">Audience Insights</span>
+                    <span className="sm:hidden ml-2">Audience</span>
+                </button>
+                <button
                     onClick={() => setActiveTab('withdrawal')}
-                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] whitespace-nowrap ${
                         activeTab === 'withdrawal'
                             ? 'bg-primary text-white'
                             : 'text-text-secondary hover:text-white'
@@ -287,6 +313,14 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
 
             {activeTab === 'earnings' && (
                 <EarningsDashboard />
+            )}
+
+            {activeTab === 'analytics' && (
+                <AdvancedAnalytics />
+            )}
+
+            {activeTab === 'audience' && (
+                <AudienceInsights />
             )}
 
             {activeTab === 'withdrawal' && (
