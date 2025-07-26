@@ -1,7 +1,7 @@
 import { ethers, Signer, Provider } from 'ethers';
 import { Chain, TransactionResult, ContractManager as IContractManager } from './web3-types';
 import { getContractInstance } from './contractUtils';
-import { SUPPORTED_CHAINS, getChainByChainId } from './blockchainConfig';
+import { getChainByChainId } from './blockchainConfig';
 
 class ContractManager implements IContractManager {
   public contracts: IContractManager['contracts'] = {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { TransactionReceipt } from 'ethers';
 import { useWallet } from '../lib/WalletProvider';
 
 interface TransactionStatus {
@@ -17,7 +17,7 @@ interface TransactionStatus {
 interface PendingTransaction {
   hash: string;
   description: string;
-  onConfirmed?: (receipt: ethers.providers.TransactionReceipt) => void;
+  onConfirmed?: (receipt: TransactionReceipt) => void;
   onFailed?: (error: string) => void;
   requiredConfirmations: number;
 }
@@ -29,7 +29,7 @@ interface TransactionTrackerHook {
     description: string, 
     options?: {
       requiredConfirmations?: number;
-      onConfirmed?: (receipt: ethers.providers.TransactionReceipt) => void;
+      onConfirmed?: (receipt: TransactionReceipt) => void;
       onFailed?: (error: string) => void;
     }
   ) => void;
@@ -50,7 +50,7 @@ export const useTransactionTracker = (): TransactionTrackerHook => {
     description: string,
     options: {
       requiredConfirmations?: number;
-      onConfirmed?: (receipt: ethers.providers.TransactionReceipt) => void;
+      onConfirmed?: (receipt: TransactionReceipt) => void;
       onFailed?: (error: string) => void;
     } = {}
   ) => {
@@ -95,7 +95,7 @@ export const useTransactionTracker = (): TransactionTrackerHook => {
             confirmations,
             requiredConfirmations,
             gasUsed: receipt.gasUsed.toString(),
-            effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+            effectiveGasPrice: receipt.gasPrice?.toString(),
             blockNumber: receipt.blockNumber,
             timestamp: Date.now()
           };

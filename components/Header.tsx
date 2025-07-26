@@ -19,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
         { page: Page.Dashboard, label: 'Dashboard' },
         { page: Page.CreatorProfile, label: 'Creator Profile' }, // New navigation item
         { page: Page.Governance, label: 'Governance' }, // Add governance navigation
+        { page: Page.Gamification, label: '🎮 Gamification' }, // Add gamification navigation
         { page: Page.Profile, label: 'Wallet Profile' }, // Renamed existing Profile
     ];
     const { account, chainId, currentChain, balance, isConnected, isConnecting, connect, disconnect, switchNetwork, error } = useWallet();

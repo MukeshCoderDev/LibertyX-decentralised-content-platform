@@ -1,4 +1,4 @@
-import { Signer, Provider } from 'ethers';
+// import { Signer, Provider } from 'ethers';
 
 export type WalletType = 'metamask' | 'walletconnect' | 'coinbase' | 'trust' | 'rainbow' | 'phantom';
 

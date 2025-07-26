@@ -547,9 +547,7 @@ export const getTokenConfig = (symbol: string): TokenConfig | undefined => {
 
 export const formatTokenAmount = (amount: string, decimals: number, symbol: string): string => {
   const value = parseFloat(amount) / Math.pow(10, decimals);
-  const config = getTokenConfig(symbol);
-  
-  // Format based on token value
+    // Format based on token value
   if (value >= 1000000) {
     return `${(value / 1000000).toFixed(2)}M ${symbol}`;
   } else if (value >= 1000) {

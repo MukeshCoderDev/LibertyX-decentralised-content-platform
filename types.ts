@@ -7,6 +7,8 @@ export enum Page {
   Profile = 'PROFILE',
   CreatorProfile = 'CREATOR_PROFILE', // Add new page type
   Governance = 'GOVERNANCE', // Add governance page type
+  SocialTest = 'SOCIAL_TEST', // Add social test page
+  Gamification = 'GAMIFICATION', // Add gamification page type
 }
 
 export interface NavigationProps {

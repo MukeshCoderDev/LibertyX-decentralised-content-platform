@@ -61,3 +61,21 @@
   70% { transform: translateY(-5px); }
   90% { transform: translateY(-2px); }
 }
+/* Fix 
+for input text visibility in social components */
+input, textarea, select {
+  color: #1f2937 !important; /* gray-800 */
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280 !important; /* gray-500 */
+}
+
+/* Ensure form elements are visible */
+.social-input {
+  color: #1f2937 !important;
+}
+
+.social-input::placeholder {
+  color: #6b7280 !important;
+}

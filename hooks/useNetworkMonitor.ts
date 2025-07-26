@@ -64,7 +64,7 @@ export const useNetworkMonitor = (): NetworkMonitorHook => {
         latency,
         blockNumber,
         chainId: network.chainId,
-        rpcEndpoint: provider.connection?.url || null,
+        rpcEndpoint: null,
         error: null,
         lastUpdate: Date.now()
       }));

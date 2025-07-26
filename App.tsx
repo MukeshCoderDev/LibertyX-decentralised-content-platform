@@ -13,6 +13,8 @@ import CreatorRegistrationForm from './components/CreatorRegistrationForm'; // I
 import { GovernanceDashboard } from './components/GovernanceDashboard'; // Import governance dashboard
 import { RealTimeDataSync } from './components/RealTimeDataSync'; // Import real-time data sync
 import ErrorBoundary from './components/ErrorBoundary'; // Import error boundary
+import { SocialTestPage } from './components/SocialTestPage'; // Import social test page
+import { GamificationDashboard } from './components/GamificationDashboard'; // Import gamification dashboard
 // Temporarily commented out to fix import issues
 // import { NotificationProvider } from './components/NotificationSystem'; // Import notification system
 
@@ -48,6 +50,10 @@ const App: React.FC = () => {
         return <CreatorProfile />;
       case Page.Governance: // New case for Governance
         return <GovernanceDashboard />;
+      case Page.SocialTest: // New case for Social Test
+        return <SocialTestPage />;
+      case Page.Gamification: // New case for Gamification
+        return <GamificationDashboard />;
       default:
         return <LandingPage onNavigate={navigate} />;
     }

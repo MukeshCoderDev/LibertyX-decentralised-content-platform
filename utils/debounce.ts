@@ -34,7 +34,7 @@ export function useStableCallback<T extends (...args: any[]) => any>(
   callback: T,
   deps: any[]
 ): T {
-  const ref = useRef<T>();
+  const ref = useRef<T>(null);
   
   useEffect(() => {
     ref.current = callback;

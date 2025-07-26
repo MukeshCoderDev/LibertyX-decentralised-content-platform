@@ -1,14 +1,36 @@
 import { useContext, useMemo } from 'react';
-import { WalletContext, WalletContextType } from '../lib/WalletProvider';
+import { WalletContext } from '../lib/WalletProvider';
 import ContractManager from '../lib/ContractManager';
 import { getChainByChainId } from '../lib/blockchainConfig';
+import { Chain, TransactionResult } from '../lib/web3-types';
 
-export const useContractManager = (): ContractManager | null => {
+interface ContractManagerHook {
+  executeTransaction: (
+    contractName: keyof Chain['contracts'],
+    method: string,
+    params: any[],
+    options?: { value?: string }
+  ) => Promise<TransactionResult>;
+  listenToEvents: (
+    contractName: keyof Chain['contracts'],
+    eventName: string,
+    callback: Function
+  ) => void;
+  getContract: (contractName: keyof Chain['contracts'], chainId: number) => any;
+  manager: ContractManager | null;
+}
+
+export const useContractManager = (): ContractManagerHook => {
   const walletContext = useContext(WalletContext);
   
   if (!walletContext) {
     console.error('useContractManager must be used within a WalletProvider');
-    return null;
+    return {
+      executeTransaction: async () => { throw new Error('Wallet not connected'); },
+      listenToEvents: () => {},
+      getContract: () => null,
+      manager: null
+    };
   }
 
   const { signer, provider, chainId, isConnected } = walletContext;
@@ -43,5 +65,26 @@ export const useContractManager = (): ContractManager | null => {
     }
   }, [chainId, isConnected, !!signer, !!provider]); // Use boolean flags instead of objects
 
-  return contractManager;
+  return {
+    executeTransaction: async (contractName, method, params, options) => {
+      if (!contractManager) {
+        throw new Error('Contract manager not initialized');
+      }
+      return contractManager.executeTransaction(contractName, method, params, options);
+    },
+    listenToEvents: (contractName, eventName, callback) => {
+      if (!contractManager) {
+        console.warn('Contract manager not initialized, cannot listen to events');
+        return;
+      }
+      contractManager.listenToEvents(contractName, eventName, callback);
+    },
+    getContract: (contractName, chainId) => {
+      if (!contractManager) {
+        return null;
+      }
+      return contractManager.getContract(contractName, chainId);
+    },
+    manager: contractManager
+  };
 };
