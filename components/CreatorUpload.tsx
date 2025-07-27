@@ -6,6 +6,12 @@ import Modal from './ui/Modal';
 import { useArweave } from '../hooks/useArweave';
 import { ContentMetadata } from '../lib/arweaveConfig';
 import CryptoPriceInput from './CryptoPriceInput';
+import { uploadVideo, estimateUploadCost } from '../lib/uploadToArweave';
+import WalletUpload from './WalletUpload';
+import { useWallet } from '../hooks/useWallet';
+import AnimatedUploadProgress from './AnimatedUploadProgress';
+import ArweaveFeatureHighlight from './ArweaveFeatureHighlight';
+import WalletConnectionAnimation from './WalletConnectionAnimation';
 
 const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
     const [step, setStep] = useState(1);
@@ -22,36 +28,35 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
     const [description, setDescription] = useState('');
     const [thumbnails, setThumbnails] = useState<string[]>([]);
     const [arweaveTransactionId, setArweaveTransactionId] = useState<string | null>(null);
+    const [uploadCostEstimate, setUploadCostEstimate] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadStage, setUploadStage] = useState<'preparing' | 'uploading' | 'confirming' | 'complete'>('preparing');
+    const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Arweave hook
-    const {
-        isUploading,
-        uploadProgress,
-        uploadResult,
-        isWaitingConfirmation,
-        error,
-        uploadAndRegisterContent,
-        getContentUrl,
-        clearError,
-        reset
-    } = useArweave();
+    // Wallet management
+    const { 
+        wallet, 
+        isWalletLoaded, 
+        walletBalance,
+        refreshBalance,
+        clearWallet,
+        estimateUploadCost: estimateWalletCost 
+    } = useWallet();
+
+    // Remove the old Arweave hook since we're using direct wallet upload
+    const [error, setError] = useState<string | null>(null);
 
     // Generate thumbnails when file is selected
     useEffect(() => {
         if (selectedFile && selectedFile.type.startsWith('video/')) {
             generateThumbnails(selectedFile);
+            // Estimate upload cost
+            estimateUploadCost(selectedFile.size)
+                .then(cost => setUploadCostEstimate(cost))
+                .catch(err => console.error('Cost estimation failed:', err));
         }
     }, [selectedFile]);
-
-    // Handle upload completion
-    useEffect(() => {
-        if (uploadResult) {
-            setArweaveTransactionId(uploadResult.transactionId);
-            console.log('✅ Content uploaded to Arweave:', uploadResult.transactionId);
-            console.log('🔗 Content URL:', getContentUrl(uploadResult.transactionId));
-        }
-    }, [uploadResult, getContentUrl]);
 
     const handleFileSelect = (file: File) => {
         if (!file.type.startsWith('video/')) {
@@ -119,34 +124,76 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
 
     const handleUploadToArweave = async () => {
         if (!selectedFile || !title.trim()) {
-            alert('Please provide a title for your content');
+            setError('Please provide a title for your content');
             return;
         }
 
-        const metadata: Omit<ContentMetadata, 'arweaveId' | 'size' | 'createdAt'> = {
-            title: title.trim(),
-            description: description.trim() || 'No description provided',
-            contentType: selectedFile.type,
-            price: price.amount, // Price is already in wei format
-            accessLevel: isEncrypted ? 'premium' : 'public',
-            tags: ['video', 'content', 'libertyx'],
-            thumbnail: thumbnails[selectedThumb - 1] || '',
-            duration: 0, // Will be calculated later
-        };
+        if (!isWalletLoaded || !wallet) {
+            setError('Please upload your Arweave wallet first');
+            return;
+        }
+
+        // Check if wallet has sufficient funds
+        if (uploadCostEstimate && parseFloat(walletBalance!) < parseFloat(uploadCostEstimate)) {
+            setError(`Insufficient funds. You need at least ${uploadCostEstimate} AR tokens. Current balance: ${walletBalance} AR`);
+            return;
+        }
 
         try {
-            clearError();
-            const result = await uploadAndRegisterContent(selectedFile, metadata, true);
+            setIsUploading(true);
+            setError(null);
+            setUploadStage('preparing');
+            setUploadProgress(0);
+            
+            console.log('🚀 Starting creator-funded upload to Arweave...');
+            
+            // Simulate preparation phase
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setUploadStage('uploading');
+            setUploadProgress(10);
+            
+            // Convert file to buffer
+            const buffer = await selectedFile.arrayBuffer();
+            setUploadProgress(30);
+            
+            // Prepare metadata
+            const metadata = {
+                title: title.trim(),
+                description: description.trim() || 'No description provided',
+                accessLevel: isEncrypted ? 'premium' : 'public',
+            };
+            
+            setUploadProgress(50);
+            
+            // Upload using creator's wallet
+            const result = await uploadVideo(buffer, selectedFile.type, wallet.keyfile, metadata);
+            
+            setUploadProgress(80);
+            setUploadStage('confirming');
+            
+            // Simulate confirmation phase
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
             if (result) {
-                console.log('🎉 Upload and registration completed!');
-                console.log('📁 Arweave TX:', result.arweaveResult.transactionId);
-                console.log('⛓️ Blockchain TX:', result.txHash);
-                setStep(5); // Success step
+                setUploadProgress(100);
+                setUploadStage('complete');
+                
+                console.log('🎉 Creator-funded upload completed!');
+                console.log('📁 Arweave TX:', result.transactionId);
+                console.log('🔗 Content URL:', result.url);
+                
+                setArweaveTransactionId(result.transactionId);
+                
+                // Wait for success animation then proceed
+                setTimeout(() => {
+                    setStep(5); // Success step
+                }, 2000);
             }
         } catch (error: any) {
-            console.error('❌ Upload failed:', error);
-            alert(`Upload failed: ${error.message}`);
+            console.error('❌ Creator-funded upload failed:', error);
+            setError(error.message || 'Upload failed');
+            setIsUploading(false);
+            setUploadStage('preparing');
         }
     };
 
@@ -154,33 +201,65 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
         switch(step) {
             case 1:
                 return (
-                    <div className="text-center">
+                    <div>
                         <h2 className="text-3xl font-satoshi font-bold mb-4">Upload Your Content</h2>
-                        <p className="text-text-secondary mb-8">Drag & drop your video file or click to select.</p>
+                        <p className="text-text-secondary mb-8">First, upload your Arweave wallet to pay for storage, then select your video.</p>
                         
-                        <div 
-                            onDrop={handleDrop}
-                            onDragOver={(e) => e.preventDefault()}
-                            onClick={() => fileInputRef.current?.click()}
-                            className="w-full h-64 border-4 border-dashed border-gray-600 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-card/50 transition-colors"
-                        >
-                            <div className="text-6xl mb-4">📁</div>
-                            <p className="text-lg">Drop file here</p>
-                            <p className="text-sm text-text-secondary mt-2">or click to browse</p>
+                        {/* Wallet Upload Section */}
+                        <div className="mb-8">
+                            <h3 className="text-lg font-satoshi font-semibold mb-4">Step 1: Upload Your Arweave Wallet</h3>
+                            {isWalletLoaded ? (
+                                <WalletConnectionAnimation
+                                    isConnected={isWalletLoaded}
+                                    walletAddress={wallet?.address}
+                                    balance={walletBalance}
+                                    onRefresh={refreshBalance}
+                                    onDisconnect={clearWallet}
+                                />
+                            ) : (
+                                <WalletUpload onWalletLoaded={() => console.log('Wallet loaded!')} />
+                            )}
                         </div>
-                        
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="video/*"
-                            onChange={handleFileInput}
-                            className="hidden"
-                        />
+
+                        {/* Video Upload Section */}
+                        {isWalletLoaded && (
+                            <div className="animate-slideUp">
+                                <h3 className="text-lg font-satoshi font-semibold mb-4">Step 2: Select Your Video</h3>
+                                <div 
+                                    onDrop={handleDrop}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full h-64 border-4 border-dashed border-gray-600 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-card/50 transition-all duration-300 hover-lift hover-glow"
+                                >
+                                    <div className="text-6xl mb-4 animate-float">📁</div>
+                                    <p className="text-lg font-semibold">Drop video file here</p>
+                                    <p className="text-sm text-text-secondary mt-2">or click to browse</p>
+                                    <div className="mt-4 text-xs text-gray-500">
+                                        Supported: MP4, WebM, MOV • Max: 500MB
+                                    </div>
+                                </div>
+                                
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="video/*"
+                                    onChange={handleFileInput}
+                                    className="hidden"
+                                />
+                            </div>
+                        )}
+
+                        {/* Arweave Feature Highlight */}
+                        {!isWalletLoaded && (
+                            <div className="mt-8">
+                                <ArweaveFeatureHighlight />
+                            </div>
+                        )}
                         
                         {error && (
                             <div className="mt-4 p-4 bg-red-500/20 border border-red-500 rounded-lg">
                                 <p className="text-red-400">{error}</p>
-                                <Button onClick={clearError} className="mt-2 text-sm">Dismiss</Button>
+                                <Button onClick={() => setError(null)} className="mt-2 text-sm">Dismiss</Button>
                             </div>
                         )}
                     </div>
@@ -278,9 +357,39 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
                 return (
                     <div>
                         <h2 className="text-3xl font-satoshi font-bold mb-4">Final Details</h2>
-                        <p className="text-text-secondary mb-8">Set your price and privacy settings.</p>
+                        <p className="text-text-secondary mb-8">Review costs and set your price and privacy settings.</p>
                         
                         <div className="space-y-6">
+                            {/* Cost Breakdown */}
+                            {uploadCostEstimate && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <h4 className="font-medium text-blue-800 mb-2">Upload Cost Breakdown</h4>
+                                    <div className="space-y-1 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-blue-700">File size:</span>
+                                            <span className="text-blue-800">{(selectedFile!.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-blue-700">Arweave storage cost:</span>
+                                            <span className="text-blue-800">{parseFloat(uploadCostEstimate).toFixed(6)} AR</span>
+                                        </div>
+                                        <div className="flex justify-between font-medium">
+                                            <span className="text-blue-700">Your wallet balance:</span>
+                                            <span className="text-blue-800">{parseFloat(walletBalance!).toFixed(6)} AR</span>
+                                        </div>
+                                        <div className="flex justify-between font-medium">
+                                            <span className="text-blue-700">Remaining after upload:</span>
+                                            <span className={`${parseFloat(walletBalance!) >= parseFloat(uploadCostEstimate) ? 'text-green-600' : 'text-red-600'}`}>
+                                                {parseFloat(walletBalance!) >= parseFloat(uploadCostEstimate) 
+                                                    ? `${(parseFloat(walletBalance!) - parseFloat(uploadCostEstimate)).toFixed(6)} AR`
+                                                    : 'Insufficient funds'
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <CryptoPriceInput
                                     price={price}
@@ -297,20 +406,12 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
                             {isUploading && (
                                 <div className="p-4 bg-background rounded-lg">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span>Uploading to Arweave...</span>
-                                        <span>{uploadProgress?.percentage || 0}%</span>
+                                        <span>Uploading to Arweave with your wallet...</span>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                                     </div>
-                                    <div className="w-full bg-gray-700 rounded-full h-2">
-                                        <div 
-                                            className="bg-primary h-2 rounded-full transition-all duration-300"
-                                            style={{ width: `${uploadProgress?.percentage || 0}%` }}
-                                        />
-                                    </div>
-                                    {isWaitingConfirmation && (
-                                        <p className="text-sm text-text-secondary mt-2">
-                                            Waiting for blockchain confirmation...
-                                        </p>
-                                    )}
+                                    <p className="text-sm text-text-secondary">
+                                        This may take a few moments. Please don't close this tab.
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -318,33 +419,75 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
                         <Button 
                             onClick={handleUploadToArweave} 
                             className="mt-8 w-full"
-                            disabled={isUploading}
+                            disabled={isUploading || !isWalletLoaded || (uploadCostEstimate && parseFloat(walletBalance!) < parseFloat(uploadCostEstimate))}
                         >
-                            {isUploading ? 'Uploading...' : 'Upload to Arweave & Mint Access Pass'}
+                            {isUploading ? 'Uploading with Your Wallet...' : 'Upload to Arweave & Mint Access Pass'}
                         </Button>
+
+                        {uploadCostEstimate && parseFloat(walletBalance!) < parseFloat(uploadCostEstimate) && (
+                            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-sm text-yellow-800">
+                                    <strong>Insufficient funds:</strong> You need at least {parseFloat(uploadCostEstimate).toFixed(6)} AR tokens to upload this video. 
+                                    Please add more AR to your wallet and refresh the balance.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 );
 
             case 5:
                 return (
-                    <div className="text-center">
-                        <div className="text-6xl mb-4">🎉</div>
-                        <h2 className="text-3xl font-satoshi font-bold mb-4">Upload Successful!</h2>
-                        <p className="text-text-secondary mb-8">
-                            Your content has been permanently stored on Arweave and registered on the blockchain.
+                    <div className="text-center animate-uploadSuccess">
+                        <div className="text-8xl mb-6 animate-bounce">🎉</div>
+                        <h2 className="text-4xl font-satoshi font-bold mb-4 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                            Upload Successful!
+                        </h2>
+                        <p className="text-text-secondary mb-8 text-lg">
+                            Your content is now <span className="font-semibold text-purple-600">permanently stored forever</span> on Arweave's decentralized network!
                         </p>
                         
+                        {/* Success Stats */}
+                        <div className="grid grid-cols-3 gap-4 mb-8">
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div className="text-2xl mb-1">♾️</div>
+                                <div className="text-sm font-medium text-green-800">Permanent</div>
+                                <div className="text-xs text-green-600">Forever stored</div>
+                            </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="text-2xl mb-1">🔒</div>
+                                <div className="text-sm font-medium text-blue-800">Decentralized</div>
+                                <div className="text-xs text-blue-600">Censorship resistant</div>
+                            </div>
+                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                <div className="text-2xl mb-1">🌐</div>
+                                <div className="text-sm font-medium text-purple-800">Global</div>
+                                <div className="text-xs text-purple-600">Worldwide access</div>
+                            </div>
+                        </div>
+                        
                         {arweaveTransactionId && (
-                            <div className="bg-background p-4 rounded-lg mb-6 text-left">
-                                <p className="text-sm text-text-secondary mb-2">Arweave Transaction ID:</p>
-                                <p className="font-mono text-sm break-all">{arweaveTransactionId}</p>
+                            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6 mb-8 text-left animate-fadeIn">
+                                <div className="flex items-center space-x-3 mb-4">
+                                    <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                        <span className="text-white text-lg">🔗</span>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-gray-800">Arweave Transaction</h4>
+                                        <p className="text-sm text-gray-600">Your content's permanent address</p>
+                                    </div>
+                                </div>
+                                <div className="bg-white rounded-lg p-3 mb-4">
+                                    <p className="text-xs text-gray-500 mb-1">Transaction ID:</p>
+                                    <p className="font-mono text-sm break-all text-gray-800">{arweaveTransactionId}</p>
+                                </div>
                                 <a 
-                                    href={getContentUrl(arweaveTransactionId)}
+                                    href={`https://arweave.net/${arweaveTransactionId}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-primary hover:underline text-sm"
+                                    className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 hover-lift"
                                 >
-                                    View on Arweave →
+                                    <span>View on Arweave</span>
+                                    <span>→</span>
                                 </a>
                             </div>
                         )}
@@ -352,24 +495,28 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
                         <div className="flex gap-4">
                             <Button 
                                 onClick={() => onNavigate(Page.CreatorDashboard)} 
-                                className="flex-1"
+                                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 hover-lift"
                             >
-                                View Dashboard
+                                🎯 View Dashboard
                             </Button>
                             <Button 
                                 onClick={() => {
-                                    reset();
                                     setStep(1);
                                     setSelectedFile(null);
                                     setTitle('');
                                     setDescription('');
                                     setThumbnails([]);
                                     setArweaveTransactionId(null);
+                                    setUploadCostEstimate(null);
+                                    setError(null);
+                                    setIsUploading(false);
+                                    setUploadStage('preparing');
+                                    setUploadProgress(0);
                                 }} 
                                 variant="secondary"
-                                className="flex-1"
+                                className="flex-1 hover-lift"
                             >
-                                Upload Another
+                                🚀 Upload Another
                             </Button>
                         </div>
                     </div>
@@ -381,12 +528,21 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
     }
 
     return (
-        <div className="container mx-auto max-w-2xl py-12 px-4">
-            <div className="bg-card p-8 rounded-2xl shadow-lg">
-                {renderStep()}
+        <>
+            <div className="container mx-auto max-w-2xl py-12 px-4">
+                <div className="bg-card p-8 rounded-2xl shadow-lg hover-lift">
+                    {renderStep()}
+                </div>
             </div>
- 
-        </div>
+
+            {/* Animated Upload Progress Modal */}
+            <AnimatedUploadProgress
+                isUploading={isUploading}
+                progress={uploadProgress}
+                stage={uploadStage}
+                fileName={selectedFile?.name}
+            />
+        </>
     );
 };
 

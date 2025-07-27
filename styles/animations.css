@@ -1,0 +1,200 @@
+/* Custom animations for LibertyX */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes progressPulse {
+  0%, 100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.02);
+  }
+}
+
+@keyframes walletConnect {
+  0% {
+    transform: scale(0.8) rotate(-10deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes uploadSuccess {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes arweaveGlow {
+  0%, 100% {
+    background: linear-gradient(45deg, #8b5cf6, #3b82f6);
+  }
+  33% {
+    background: linear-gradient(45deg, #3b82f6, #10b981);
+  }
+  66% {
+    background: linear-gradient(45deg, #10b981, #f59e0b);
+  }
+}
+
+/* Utility classes */
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-progressPulse {
+  animation: progressPulse 1s ease-in-out infinite;
+}
+
+.animate-walletConnect {
+  animation: walletConnect 0.8s ease-out forwards;
+}
+
+.animate-uploadSuccess {
+  animation: uploadSuccess 0.6s ease-out forwards;
+}
+
+.animate-arweaveGlow {
+  animation: arweaveGlow 3s ease-in-out infinite;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Loading states */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Success states */
+.success-bounce {
+  animation: bounce 1s ease-in-out;
+}
+
+.success-glow {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+}
+
+/* Arweave specific animations */
+.arweave-permanent {
+  background: linear-gradient(45deg, #8b5cf6, #3b82f6, #10b981);
+  background-size: 300% 300%;
+  animation: arweaveGlow 4s ease-in-out infinite;
+}
+
+.arweave-upload-progress {
+  background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite, progressPulse 1s ease-in-out infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .animate-float {
+    animation-duration: 2s;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+}

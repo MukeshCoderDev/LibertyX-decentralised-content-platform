@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
+import './styles/animations.css';
 import { Page } from './types';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
