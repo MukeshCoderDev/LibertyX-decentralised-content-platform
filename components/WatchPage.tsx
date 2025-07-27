@@ -182,7 +182,7 @@ const WatchPage: React.FC<NavigationProps> = ({ onNavigate }) => {
             </div>
 
             {/* Social Features Drawer */}
-            <div className={`absolute top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl z-20 transform transition-transform ${showComments ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`absolute top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl z-[100] transform transition-transform ${showComments ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                     <h3 className="font-satoshi text-xl font-bold text-gray-900">Social Hub</h3>
                     <button 

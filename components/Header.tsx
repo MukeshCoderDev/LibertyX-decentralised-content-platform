@@ -12,9 +12,10 @@ import { NetworkBadge, NetworkStatus } from './ui/NetworkBadge';
 interface HeaderProps extends NavigationProps {
     currentPage: Page;
     onOpenRegistrationModal: () => void; // New prop
+    isWatchPage?: boolean; // New prop to detect watch page
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistrationModal }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistrationModal, isWatchPage = false }) => {
     const navItems = [
         { page: Page.Explore, label: 'Explore' },
         { page: Page.Upload, label: 'Upload' },
@@ -38,8 +39,8 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
 
     return (
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+                <div className="flex items-center justify-between h-20 overflow-visible">
                     <div className="flex-shrink-0 cursor-pointer" onClick={() => onNavigate(Page.Explore)}>
                        <Logo />
                     </div>
@@ -67,55 +68,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                     <div className="flex items-center space-x-4">
                         {isConnected ? (
                             <>
-                                {/* Desktop wallet info - organized in a cleaner layout */}
-                                <div className="hidden md:flex flex-col items-end space-y-1 bg-card p-3 rounded-lg text-sm min-w-[280px]">
-                                    {/* Top row: Network and Connection Status */}
-                                    <div className="flex items-center space-x-3 w-full justify-between">
-                                        <div className="relative group">
-                                            <NetworkStatus
-                                                networkName={getNetworkName(currentChain)}
-                                                isConnected={isConnected}
-                                                isConnecting={isConnecting}
-                                            />
-                                            <div className="absolute left-0 mt-2 w-48 bg-card border border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                                {SUPPORTED_CHAINS.map((chain) => (
-                                                    <button
-                                                        key={chain.chainId}
-                                                        onClick={() => handleSwitchNetwork(chain.chainId)}
-                                                        className="block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-primary/20"
-                                                    >
-                                                        {chain.name}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Bottom row: Balance and Wallet Address */}
-                                    <div className="flex items-center space-x-4 w-full justify-between">
-                                        <div className="flex items-center space-x-3">
-                                            <span className="text-text-secondary">Balance:</span>
-                                            <StableBalanceDisplay 
-                                                tokenSymbol="LIB" 
-                                                size="small" 
-                                                className="text-white font-medium"
-                                            />
-                                            <span className="text-text-secondary">|</span>
-                                            <StableBalanceDisplay 
-                                                tokenSymbol={currentChain?.nativeCurrency.symbol || 'ETH'} 
-                                                size="small" 
-                                                className="text-white font-medium"
-                                            />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-primary font-mono text-xs bg-primary/10 px-2 py-1 rounded">
-                                                {shortenAddress(account || '')}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Action buttons */}
+                                {/* Action buttons - moved to top right */}
                                 <div className="hidden md:flex items-center space-x-2">
                                     <button
                                         onClick={onOpenRegistrationModal}
@@ -132,15 +85,20 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                                 </div>
 
                                 {/* Mobile simplified view */}
-                                <div className="md:hidden flex items-center space-x-2">
-                                    <NetworkBadge
-                                        networkName={getNetworkName(currentChain)}
-                                        isConnected={isConnected}
-                                        isConnecting={isConnecting}
-                                        size="small"
-                                        variant="compact"
-                                        showNetworkName={false}
-                                    />
+                                <div className="md:hidden flex flex-col items-end space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                        <NetworkBadge
+                                            networkName={getNetworkName(currentChain)}
+                                            isConnected={isConnected}
+                                            isConnecting={isConnecting}
+                                            size="small"
+                                            variant="compact"
+                                            showNetworkName={false}
+                                        />
+                                        <span className="text-primary font-mono text-xs bg-primary/10 px-2 py-1 rounded whitespace-nowrap">
+                                            {shortenAddress(account || '')}
+                                        </span>
+                                    </div>
                                     <button
                                         onClick={disconnect}
                                         className="px-3 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 transition-colors"
@@ -166,6 +124,61 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                         </div>
                     </div>
                 </div>
+                
+                {/* Network and Balance info - moved below navigation */}
+                {isConnected && (
+                    <div className="hidden md:flex justify-center mt-2 pb-3 relative z-40">
+                        <div className="flex items-center space-x-6 bg-card p-3 rounded-lg text-sm">
+                            {/* Network Status */}
+                            <div className="relative group z-50">
+                                <NetworkStatus
+                                    networkName={getNetworkName(currentChain)}
+                                    isConnected={isConnected}
+                                    isConnecting={isConnecting}
+                                />
+                                <div className={`absolute left-0 mt-2 w-56 bg-card border border-gray-700 rounded-md shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999] max-h-64 overflow-y-auto`}>
+                                    {SUPPORTED_CHAINS.map((chain, index) => (
+                                        <button
+                                            key={chain.chainId}
+                                            onClick={() => handleSwitchNetwork(chain.chainId)}
+                                            className={`block w-full text-left px-4 py-3 text-sm text-white hover:bg-primary/30 transition-colors ${
+                                                chainId === chain.chainId ? 'bg-primary/20 border-l-2 border-primary' : ''
+                                            } ${index === 0 ? 'rounded-t-md' : ''} ${index === SUPPORTED_CHAINS.length - 1 ? 'rounded-b-md' : ''}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-medium">{chain.name}</span>
+                                                <span className="text-xs text-gray-400">{chain.nativeCurrency.symbol}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Balance */}
+                            <div className="flex items-center space-x-3">
+                                <span className="text-text-secondary">Balance:</span>
+                                <StableBalanceDisplay 
+                                    tokenSymbol="LIB" 
+                                    size="small" 
+                                    className="text-white font-medium"
+                                />
+                                <span className="text-text-secondary">|</span>
+                                <StableBalanceDisplay 
+                                    tokenSymbol={currentChain?.nativeCurrency.symbol || 'ETH'} 
+                                    size="small" 
+                                    className="text-white font-medium"
+                                />
+                            </div>
+                            
+                            {/* Wallet Address */}
+                            <div className="flex items-center space-x-2">
+                                <span className="text-primary font-mono text-sm bg-primary/10 px-3 py-1.5 rounded-md border border-primary/20 whitespace-nowrap">
+                                    {shortenAddress(account || '')}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
             {error && (
                 <div className="bg-red-800 text-white text-center py-2">

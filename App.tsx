@@ -64,11 +64,12 @@ const App: React.FC = () => {
       {/* Temporarily removed NotificationProvider to fix import issues */}
       <RealTimeDataSync>
         <div className="min-h-screen bg-background">
-          {currentPage !== Page.Landing && (
+          {currentPage !== Page.Landing && currentPage !== Page.Watch && (
             <Header
               onNavigate={navigate}
               currentPage={currentPage}
               onOpenRegistrationModal={() => setShowRegistrationModal(true)} // Pass setter to Header
+              isWatchPage={currentPage === Page.Watch} // Pass watch page detection
             />
           )}
           <main>{renderPage()}</main>

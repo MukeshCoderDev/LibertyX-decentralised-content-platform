@@ -108,9 +108,16 @@
 
 - [x] 13. Update PriceDisplay component for consistent formatting
 
-
   - Update `components/PriceDisplay.tsx` to use `formatToken` utility
   - Ensure consistent token formatting in price displays
   - Maintain existing styling while improving format consistency
   - Test price display formatting across different contexts
   - _Requirements: 3.1, 3.2, 3.3_
+
+- [x] 14. Fix wallet address visibility issue in Header component
+
+  - Fix wallet address display getting cut off or hidden behind other elements
+  - Ensure proper z-index and overflow handling for wallet info section
+  - Improve responsive layout to prevent address truncation on smaller screens
+  - Test wallet address visibility across different screen sizes and network states
+  - _Requirements: Visual consistency and accessibility_
