@@ -218,17 +218,42 @@ const CryptoPriceInput: React.FC<CryptoPriceInputProps> = ({
         <label className="font-satoshi text-sm text-text-secondary whitespace-nowrap">
           Price Token
         </label>
-        <select
-          value={price.symbol}
-          onChange={(e) => handleTokenChange(e.target.value)}
-          className="bg-card border border-border rounded-lg px-3 py-2 font-satoshi focus:outline-none focus:border-primary"
-        >
-          {tokenOptions.map(token => (
-            <option key={token.symbol} value={token.symbol}>
-              {token.icon} {token.symbol} - {token.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-3">
+          {/* Current Token Display */}
+          <div className="flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-lg px-3 py-2">
+            <span className="text-xl">{currentToken.icon}</span>
+            <span className={`font-bold text-lg ${getTokenColor(price.symbol)}`}>
+              {price.symbol}
+            </span>
+          </div>
+          
+          {/* Token Selector Dropdown */}
+          <select
+            value={price.symbol}
+            onChange={(e) => handleTokenChange(e.target.value)}
+            className="bg-gray-800 border-2 border-gray-600 rounded-lg px-4 py-3 font-satoshi focus:outline-none focus:border-primary text-white font-bold text-lg min-w-[200px] appearance-none cursor-pointer hover:bg-gray-700 transition-colors shadow-lg"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+              backgroundPosition: 'right 0.75rem center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '1.25em 1.25em',
+              paddingRight: '3rem',
+              color: '#ffffff',
+              backgroundColor: '#1f2937'
+            }}
+          >
+            {tokenOptions.map(token => (
+              <option 
+                key={token.symbol} 
+                value={token.symbol}
+                className="bg-card text-white py-2 px-3 hover:bg-primary/20"
+                style={{ backgroundColor: '#1a1a1a', color: '#ffffff' }}
+              >
+                {token.icon} {token.symbol} - {token.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Price Slider */}
