@@ -7,6 +7,13 @@ import { useContractManager } from '../hooks/useContractManager';
 import HeartIcon from './icons/HeartIcon';
 import PriceDisplay from './PriceDisplay';
 import { MessageCircle, Share2, Flag } from 'lucide-react';
+import { LockBadge, LockBadgeText } from './ui/LockBadge';
+import { Identicon } from './ui/Identicon';
+import { 
+  shouldDisableSubscribeButton, 
+  getInsufficientBalanceTooltip,
+  validateSubscriptionEligibility 
+} from '../utils/validation';
 
 interface ContentCardProps extends NavigationProps {
   item: ContentCardData & {
@@ -17,7 +24,7 @@ interface ContentCardProps extends NavigationProps {
 }
 
 const ContentCard: React.FC<ContentCardProps> = memo(({ item, onNavigate }) => {
-  const { account, isConnected } = useWallet();
+  const { account, isConnected, balance } = useWallet();
   const { checkAccess } = useSubscriptionManager();
   const { checkNFTAccess } = useNFTAccess();
   const { executeTransaction } = useContractManager();
@@ -29,6 +36,14 @@ const ContentCard: React.FC<ContentCardProps> = memo(({ item, onNavigate }) => {
   const [hasAccess, setHasAccess] = useState(true); // Default to true for public content
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Get subscription price from item (assuming it's available)
+  const subscriptionPrice = item.price?.amount ? parseFloat(item.price.amount) : 10; // Default price
+  
+  // Check if user can afford subscription
+  const canAffordSubscription = !shouldDisableSubscribeButton(balance, subscriptionPrice, 'LIB');
+  const insufficientBalanceTooltip = getInsufficientBalanceTooltip(balance, subscriptionPrice, 'LIB');
 
   // Check access for gated content
   useEffect(() => {
@@ -170,26 +185,14 @@ const ContentCard: React.FC<ContentCardProps> = memo(({ item, onNavigate }) => {
 
       {/* Access Level Badge */}
       <div className="absolute top-4 right-4 flex flex-col gap-2">
-        {item.accessLevel === 'subscription' && (
-          <div className={`text-white text-xs font-bold px-2 py-1 rounded-full ${
-            hasAccess ? 'bg-green-500' : 'bg-orange-500'
-          }`}>
-            {isCheckingAccess ? '...' : hasAccess ? '✓ Subscribed' : '🔒 Subscribe'}
-          </div>
-        )}
-        {item.accessLevel === 'nft' && (
-          <div className={`text-white text-xs font-bold px-2 py-1 rounded-full ${
-            hasAccess ? 'bg-purple-500' : 'bg-orange-500'
-          }`}>
-            {isCheckingAccess ? '...' : hasAccess ? '✓ NFT Holder' : '🎨 NFT Required'}
-          </div>
-        )}
-        {item.accessLevel === 'premium' && (
-          <div className={`text-white text-xs font-bold px-2 py-1 rounded-full ${
-            hasAccess ? 'bg-gold-500' : 'bg-orange-500'
-          }`}>
-            {isCheckingAccess ? '...' : hasAccess ? '✓ Premium' : '💎 Premium Only'}
-          </div>
+        {item.accessLevel && item.accessLevel !== 'public' && (
+          <LockBadge
+            accessType={item.accessLevel}
+            hasAccess={hasAccess}
+            isLoading={isCheckingAccess}
+            tier={item.nftTierRequired}
+            size="medium"
+          />
         )}
         <PriceDisplay 
           price={item.price} 
@@ -234,17 +237,27 @@ const ContentCard: React.FC<ContentCardProps> = memo(({ item, onNavigate }) => {
 
       {/* Creator Info */}
       <div className="absolute bottom-4 left-4 flex items-center gap-3">
-        <img src={item.creatorAvatar} alt={item.creatorName} className="w-12 h-12 rounded-full border-2 border-primary object-cover" />
+        {item.creatorAvatar ? (
+          <img 
+            src={item.creatorAvatar} 
+            alt={item.creatorName} 
+            className="w-12 h-12 rounded-full border-2 border-primary object-cover" 
+          />
+        ) : (
+          <Identicon 
+            address={item.creatorAddress || account || '0x0000000000000000000000000000000000000000'} 
+            size="medium"
+            className="border-2 border-primary"
+          />
+        )}
         <div>
           <h3 className="font-satoshi font-bold text-white text-lg">{item.creatorName}</h3>
-          {!hasAccess && item.accessLevel === 'subscription' && (
-            <p className="text-xs text-orange-300">Subscription required</p>
-          )}
-          {!hasAccess && item.accessLevel === 'nft' && (
-            <p className="text-xs text-purple-300">NFT required</p>
-          )}
-          {!hasAccess && item.accessLevel === 'premium' && (
-            <p className="text-xs text-yellow-300">Premium access required</p>
+          {item.accessLevel && item.accessLevel !== 'public' && (
+            <LockBadgeText
+              accessType={item.accessLevel}
+              hasAccess={hasAccess}
+              tier={item.nftTierRequired}
+            />
           )}
         </div>
       </div>
@@ -256,22 +269,70 @@ const ContentCard: React.FC<ContentCardProps> = memo(({ item, onNavigate }) => {
             {item.accessLevel === 'subscription' && (
               <>
                 <div className="text-4xl mb-2">🔒</div>
-                <p className="font-bold">Subscription Required</p>
+                <p className="font-bold">Subscribe Required</p>
                 <p className="text-sm opacity-75">Subscribe to {item.creatorName}</p>
+                {isConnected && (
+                  <div className="mt-4 relative">
+                    <button
+                      disabled={!canAffordSubscription}
+                      onMouseEnter={() => !canAffordSubscription && setShowTooltip(true)}
+                      onMouseLeave={() => setShowTooltip(false)}
+                      className={`
+                        px-4 py-2 rounded-md font-medium transition-colors
+                        ${canAffordSubscription 
+                          ? 'bg-primary text-white hover:bg-primary-dark' 
+                          : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        }
+                      `}
+                    >
+                      Subscribe Now
+                    </button>
+                    {showTooltip && !canAffordSubscription && insufficientBalanceTooltip && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black text-white text-xs rounded-md whitespace-nowrap">
+                        {insufficientBalanceTooltip}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
             {item.accessLevel === 'nft' && (
               <>
                 <div className="text-4xl mb-2">🎨</div>
-                <p className="font-bold">NFT Required</p>
-                <p className="text-sm opacity-75">Own NFT Tier #{item.nftTierRequired}</p>
+                <p className="font-bold">Need NFT Tier #{item.nftTierRequired || 1}</p>
+                <p className="text-sm opacity-75">Own NFT Tier #{item.nftTierRequired || 1} to access</p>
               </>
             )}
             {item.accessLevel === 'premium' && (
               <>
                 <div className="text-4xl mb-2">💎</div>
-                <p className="font-bold">Premium Access Required</p>
-                <p className="text-sm opacity-75">Subscribe or own NFT</p>
+                <p className="font-bold">Premium Required</p>
+                <p className="text-sm opacity-75">Subscribe or own NFT to access</p>
+                {isConnected && (
+                  <div className="mt-4 relative">
+                    <button
+                      disabled={!canAffordSubscription}
+                      onMouseEnter={() => !canAffordSubscription && setShowTooltip(true)}
+                      onMouseLeave={() => setShowTooltip(false)}
+                      className={`
+                        px-4 py-2 rounded-md font-medium transition-colors
+                        ${canAffordSubscription 
+                          ? 'bg-primary text-white hover:bg-primary-dark' 
+                          : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        }
+                      `}
+                    >
+                      Get Premium Access
+                    </button>
+                    {showTooltip && !canAffordSubscription && insufficientBalanceTooltip && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black text-white text-xs rounded-md whitespace-nowrap">
+                        {insufficientBalanceTooltip}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>

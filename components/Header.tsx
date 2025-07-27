@@ -6,6 +6,8 @@ import EthIcon from './icons/EthIcon';
 import { SUPPORTED_CHAINS } from '../lib/blockchainConfig';
 import { Chain } from '../lib/web3-types';
 import { StableBalanceDisplay } from './StableBalanceDisplay';
+import { formatToken, shortenAddress } from '../utils/formatters';
+import { NetworkBadge, NetworkStatus } from './ui/NetworkBadge';
 
 interface HeaderProps extends NavigationProps {
     currentPage: Page;
@@ -23,11 +25,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
         { page: Page.Profile, label: 'Wallet Profile' }, // Renamed existing Profile
     ];
     const { account, chainId, currentChain, balance, isConnected, isConnecting, connect, disconnect, switchNetwork, error } = useWallet();
-
-    const truncateAddress = (address: string | null) => {
-        if (!address) return '';
-        return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-    };
 
     const getNetworkName = (chain: Chain | undefined | null) => {
         return chain ? chain.name : 'Unknown Network';
@@ -51,7 +48,17 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                             <button
                                 key={item.page}
                                 onClick={() => onNavigate(item.page)}
-                                className={`font-satoshi text-lg font-medium transition-colors ${currentPage === item.page ? 'text-primary' : 'text-text-secondary hover:text-white'}`}
+                                className={`
+                                    font-satoshi text-lg font-medium transition-all duration-200 relative px-3 py-2 rounded-lg
+                                    ${currentPage === item.page 
+                                        ? 'text-primary bg-primary/10 shadow-sm' 
+                                        : 'text-text-secondary hover:text-white hover:bg-white/5'
+                                    }
+                                    ${currentPage === item.page 
+                                        ? 'after:absolute after:bottom-[-8px] after:left-1/2 after:transform after:-translate-x-1/2 after:w-8 after:h-0.5 after:bg-primary after:rounded-full after:shadow-sm' 
+                                        : 'hover:after:absolute hover:after:bottom-[-8px] hover:after:left-1/2 hover:after:transform hover:after:-translate-x-1/2 hover:after:w-4 hover:after:h-0.5 hover:after:bg-white/30 hover:after:rounded-full hover:after:transition-all hover:after:duration-200'
+                                    }
+                                `}
                             >
                                 {item.label}
                             </button>
@@ -64,28 +71,23 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                                 <div className="hidden md:flex flex-col items-end space-y-1 bg-card p-3 rounded-lg text-sm min-w-[280px]">
                                     {/* Top row: Network and Connection Status */}
                                     <div className="flex items-center space-x-3 w-full justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-text-secondary">Network:</span>
-                                            <div className="relative group">
-                                                <button className="text-primary hover:underline font-medium">
-                                                    {getNetworkName(currentChain)}
-                                                </button>
-                                                <div className="absolute left-0 mt-2 w-48 bg-card border border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                                    {SUPPORTED_CHAINS.map((chain) => (
-                                                        <button
-                                                            key={chain.chainId}
-                                                            onClick={() => handleSwitchNetwork(chain.chainId)}
-                                                            className="block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-primary/20"
-                                                        >
-                                                            {chain.name}
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                        <div className="relative group">
+                                            <NetworkStatus
+                                                networkName={getNetworkName(currentChain)}
+                                                isConnected={isConnected}
+                                                isConnecting={isConnecting}
+                                            />
+                                            <div className="absolute left-0 mt-2 w-48 bg-card border border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                                                {SUPPORTED_CHAINS.map((chain) => (
+                                                    <button
+                                                        key={chain.chainId}
+                                                        onClick={() => handleSwitchNetwork(chain.chainId)}
+                                                        className="block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-primary/20"
+                                                    >
+                                                        {chain.name}
+                                                    </button>
+                                                ))}
                                             </div>
-                                        </div>
-                                        <div className="flex items-center space-x-2 px-2 py-1 rounded-md text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/50">
-                                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                            <span>Connected</span>
                                         </div>
                                     </div>
                                     
@@ -107,7 +109,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <span className="text-primary font-mono text-xs bg-primary/10 px-2 py-1 rounded">
-                                                {truncateAddress(account)}
+                                                {shortenAddress(account || '')}
                                             </span>
                                         </div>
                                     </div>
@@ -131,10 +133,14 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
 
                                 {/* Mobile simplified view */}
                                 <div className="md:hidden flex items-center space-x-2">
-                                    <div className="flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/50">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                        <span>Connected</span>
-                                    </div>
+                                    <NetworkBadge
+                                        networkName={getNetworkName(currentChain)}
+                                        isConnected={isConnected}
+                                        isConnecting={isConnecting}
+                                        size="small"
+                                        variant="compact"
+                                        showNetworkName={false}
+                                    />
                                     <button
                                         onClick={disconnect}
                                         className="px-3 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 transition-colors"
@@ -167,29 +173,39 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                 </div>
             )}
             {/* Mobile Bottom Nav */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-card p-2 flex justify-around md:hidden z-50 border-t border-gray-800">
+            <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm p-2 flex justify-around md:hidden z-50 border-t border-gray-800/50">
                 {navItems.map(item => (
                     <button
                         key={item.page}
                         onClick={() => onNavigate(item.page)}
-                        className={`flex flex-col items-center font-satoshi text-xs font-medium transition-colors w-full p-1 rounded-md ${currentPage === item.page ? 'text-primary bg-primary/10' : 'text-text-secondary hover:text-white'}`}
+                        className={`
+                            flex flex-col items-center font-satoshi text-xs font-medium transition-all duration-200 w-full p-2 rounded-lg relative
+                            ${currentPage === item.page 
+                                ? 'text-primary bg-primary/15 shadow-sm scale-105' 
+                                : 'text-text-secondary hover:text-white hover:bg-white/5 hover:scale-102'
+                            }
+                            ${currentPage === item.page 
+                                ? 'after:absolute after:top-0 after:left-1/2 after:transform after:-translate-x-1/2 after:w-8 after:h-0.5 after:bg-primary after:rounded-full after:shadow-sm' 
+                                : 'hover:after:absolute hover:after:top-0 hover:after:left-1/2 hover:after:transform hover:after:-translate-x-1/2 hover:after:w-4 hover:after:h-0.5 hover:after:bg-white/30 hover:after:rounded-full hover:after:transition-all hover:after:duration-200'
+                            }
+                        `}
                     >
-                        <span>{item.label}</span>
+                        <span className="truncate max-w-full">{item.label}</span>
                     </button>
                 ))}
                 {isConnected && (
                     <>
                         <button
                             onClick={onOpenRegistrationModal}
-                            className="flex flex-col items-center font-satoshi text-xs font-medium transition-colors w-full p-1 rounded-md text-primary hover:text-white bg-primary/10"
+                            className="flex flex-col items-center font-satoshi text-xs font-medium transition-all duration-200 w-full p-2 rounded-lg text-primary hover:text-white bg-primary/15 hover:bg-primary/25 hover:scale-102"
                         >
-                            <span>Register</span>
+                            <span className="truncate max-w-full">Register</span>
                         </button>
                         <button
                             onClick={disconnect}
-                            className="flex flex-col items-center font-satoshi text-xs font-medium transition-colors w-full p-1 rounded-md text-red-400 hover:text-red-200 bg-red-900/20"
+                            className="flex flex-col items-center font-satoshi text-xs font-medium transition-all duration-200 w-full p-2 rounded-lg text-red-400 hover:text-red-200 bg-red-900/20 hover:bg-red-900/30 hover:scale-102"
                         >
-                            <span>Disconnect</span>
+                            <span className="truncate max-w-full">Disconnect</span>
                         </button>
                     </>
                 )}

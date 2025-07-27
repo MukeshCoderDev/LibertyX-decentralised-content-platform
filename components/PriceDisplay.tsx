@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatToken } from '../utils/formatters';
 
 export interface TokenPrice {
   amount: string; // Using string to handle large numbers and decimals
@@ -262,10 +263,7 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({
         </span>
       )}
       <span className="font-mono">
-        {formattedAmount}
-      </span>
-      <span className="font-satoshi font-bold">
-        {price.symbol}
+        {formatToken(formattedAmount, price.symbol)}
       </span>
     </div>
   );

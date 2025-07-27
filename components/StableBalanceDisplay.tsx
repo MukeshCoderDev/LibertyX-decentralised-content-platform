@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { useStableBalances } from '../hooks/useStableBalances';
+import { formatToken } from '../utils/formatters';
 
 interface StableBalanceDisplayProps {
   tokenSymbol?: string;
@@ -60,7 +61,7 @@ export const StableBalanceDisplay: React.FC<StableBalanceDisplayProps> = memo(({
             size === 'medium' ? 'text-sm' : 
             'text-base'
           } ${className}`}>
-            0 {tokenSymbol}
+            {formatToken('0', tokenSymbol)}
           </div>
         );
       }
@@ -75,7 +76,7 @@ export const StableBalanceDisplay: React.FC<StableBalanceDisplayProps> = memo(({
             <TokenIcon symbol={targetBalance.symbol} size={size} />
           )}
           <span className="font-medium">
-            {parseFloat(targetBalance.balance).toFixed(4)} {targetBalance.symbol}
+            {formatToken(parseFloat(targetBalance.balance).toFixed(4), targetBalance.symbol)}
           </span>
         </div>
       );
@@ -94,7 +95,7 @@ export const StableBalanceDisplay: React.FC<StableBalanceDisplayProps> = memo(({
                 <TokenIcon symbol={balance.symbol} size={size} />
               )}
               <span className="font-medium">
-                {parseFloat(balance.balance).toFixed(4)} {balance.symbol}
+                {formatToken(parseFloat(balance.balance).toFixed(4), balance.symbol)}
               </span>
             </div>
           ))}
@@ -111,7 +112,7 @@ export const StableBalanceDisplay: React.FC<StableBalanceDisplayProps> = memo(({
           size === 'medium' ? 'text-sm' : 
           'text-base'
         } ${className}`}>
-          0 LIB
+          {formatToken('0', 'LIB')}
         </div>
       );
     }
@@ -126,7 +127,7 @@ export const StableBalanceDisplay: React.FC<StableBalanceDisplayProps> = memo(({
           <TokenIcon symbol={libBalance.symbol} size={size} />
         )}
         <span className="font-medium">
-          {parseFloat(libBalance.balance).toFixed(4)} {libBalance.symbol}
+          {formatToken(parseFloat(libBalance.balance).toFixed(4), libBalance.symbol)}
         </span>
       </div>
     );
