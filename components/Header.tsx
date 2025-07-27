@@ -48,7 +48,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                         {navItems.map(item => (
                             <button
                                 key={item.page}
-                                onClick={() => onNavigate(item.page)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onNavigate(item.page);
+                                }}
                                 className={`
                                     font-satoshi text-lg font-medium transition-all duration-200 relative px-3 py-2 rounded-lg
                                     ${currentPage === item.page 
@@ -190,7 +194,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                 {navItems.map(item => (
                     <button
                         key={item.page}
-                        onClick={() => onNavigate(item.page)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onNavigate(item.page);
+                        }}
                         className={`
                             flex flex-col items-center font-satoshi text-xs font-medium transition-all duration-200 w-full p-2 rounded-lg relative
                             ${currentPage === item.page 

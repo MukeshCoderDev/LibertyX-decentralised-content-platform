@@ -454,8 +454,15 @@ export const useGamification = () => {
 
   // Load data on mount and account change
   useEffect(() => {
-    loadUserData();
-  }, [loadUserData]);
+    if (account && contracts) {
+      // Use setTimeout to prevent blocking the main thread
+      const timeoutId = setTimeout(() => {
+        loadUserData();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [account, contracts]); // Remove loadUserData from dependencies to prevent infinite loops
 
   return {
     userStats,

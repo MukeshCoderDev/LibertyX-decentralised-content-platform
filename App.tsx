@@ -22,11 +22,33 @@ import { GamificationDashboard } from './components/GamificationDashboard'; // I
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Landing);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false); // State for modal
+  const [isNavigating, setIsNavigating] = useState(false); // Add navigation lock
 
   const navigate = useCallback((page: Page) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-  }, []);
+    // Prevent navigation if already on the same page or currently navigating
+    if (page === currentPage || isNavigating) return;
+    
+    console.log(`Navigating from ${currentPage} to ${page}`);
+    
+    // Set navigation lock
+    setIsNavigating(true);
+    
+    // Use requestAnimationFrame for smoother navigation
+    requestAnimationFrame(() => {
+      try {
+        setCurrentPage(page);
+        window.scrollTo(0, 0);
+        console.log(`Navigation to ${page} completed`);
+      } catch (error) {
+        console.error('Navigation error:', error);
+      } finally {
+        // Release navigation lock after a short delay
+        setTimeout(() => {
+          setIsNavigating(false);
+        }, 100);
+      }
+    });
+  }, [currentPage, isNavigating]);
 
   const handleRegistrationSuccess = useCallback(() => {
     setShowRegistrationModal(false);
@@ -34,29 +56,43 @@ const App: React.FC = () => {
   }, [navigate]);
 
   const renderPage = () => {
-    switch (currentPage) {
-      case Page.Landing:
-        return <LandingPage onNavigate={navigate} />;
-      case Page.Explore:
-        return <ExploreFeed onNavigate={navigate} />;
-      case Page.Watch:
-        return <WatchPage onNavigate={navigate} />;
-      case Page.Upload:
-        return <CreatorUpload onNavigate={navigate} />;
-      case Page.Dashboard:
-        return <CreatorDashboard onNavigate={navigate} />;
-      case Page.Profile: // This will now show WalletProfile
-        return <WalletProfile />;
-      case Page.CreatorProfile: // New case for CreatorProfile
-        return <CreatorProfile />;
-      case Page.Governance: // New case for Governance
-        return <GovernanceDashboard />;
-      case Page.SocialTest: // New case for Social Test
-        return <SocialTestPage />;
-      case Page.Gamification: // New case for Gamification
-        return <GamificationDashboard />;
-      default:
-        return <LandingPage onNavigate={navigate} />;
+    try {
+      switch (currentPage) {
+        case Page.Landing:
+          return <LandingPage onNavigate={navigate} />;
+        case Page.Explore:
+          return <ExploreFeed onNavigate={navigate} />;
+        case Page.Watch:
+          return <WatchPage onNavigate={navigate} />;
+        case Page.Upload:
+          return <CreatorUpload onNavigate={navigate} />;
+        case Page.Dashboard:
+          return <CreatorDashboard onNavigate={navigate} />;
+        case Page.Profile: // This will now show WalletProfile
+          return <WalletProfile />;
+        case Page.CreatorProfile: // New case for CreatorProfile
+          return <CreatorProfile />;
+        case Page.Governance: // New case for Governance
+          return <GovernanceDashboard />;
+        case Page.SocialTest: // New case for Social Test
+          return <SocialTestPage />;
+        case Page.Gamification: // New case for Gamification
+          return <GamificationDashboard />;
+        default:
+          return <LandingPage onNavigate={navigate} />;
+      }
+    } catch (error) {
+      console.error('Error rendering page:', error);
+      return <div className="p-8 text-center">
+        <h2 className="text-xl font-bold mb-4">Something went wrong</h2>
+        <p className="text-text-secondary mb-4">There was an error loading this page.</p>
+        <button 
+          onClick={() => navigate(Page.Landing)}
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+        >
+          Go to Home
+        </button>
+      </div>;
     }
   };
 

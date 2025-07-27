@@ -48,11 +48,24 @@ export const GamificationDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'rewards' | 'events' | 'goals' | 'community' | 'staking'>('overview');
   const [seasonalEvents, setSeasonalEvents] = useState([]);
+  const [isComponentMounted, setIsComponentMounted] = useState(false);
 
   useEffect(() => {
+    setIsComponentMounted(true);
+    
     if (account) {
-      loadSeasonalEvents();
+      // Use setTimeout to prevent blocking the main thread
+      const timeoutId = setTimeout(() => {
+        loadSeasonalEvents();
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        setIsComponentMounted(false);
+      };
     }
+    
+    return () => setIsComponentMounted(false);
   }, [account]);
 
   const loadSeasonalEvents = async () => {
@@ -61,6 +74,8 @@ export const GamificationDashboard: React.FC = () => {
       setSeasonalEvents(events);
     } catch (error) {
       console.error('Failed to load seasonal events:', error);
+      // Set empty array to prevent infinite loading
+      setSeasonalEvents([]);
     }
   };
 
@@ -93,7 +108,7 @@ export const GamificationDashboard: React.FC = () => {
     return colors[rarity as keyof typeof colors] || colors.common;
   };
 
-  if (isLoading) {
+  if (isLoading || !isComponentMounted) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -146,7 +161,11 @@ export const GamificationDashboard: React.FC = () => {
         ].map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => setActiveTab(id as any)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setActiveTab(id as any);
+            }}
             className={`flex items-center space-x-2 px-3 py-2 rounded-md font-medium transition-colors text-sm ${
               activeTab === id
                 ? 'bg-white text-blue-600 shadow-sm'
@@ -230,7 +249,11 @@ export const GamificationDashboard: React.FC = () => {
                 </div>
                 {achievement.completed && (
                   <button
-                    onClick={() => handleClaimReward(achievement.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleClaimReward(achievement.id);
+                    }}
                     className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
                   >
                     Claim
@@ -275,7 +298,11 @@ export const GamificationDashboard: React.FC = () => {
                     className="flex-1 px-3 py-2 border rounded-lg bg-gray-50"
                   />
                   <button
-                    onClick={() => navigator.clipboard.writeText(getReferralLink())}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(getReferralLink());
+                    }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     Copy

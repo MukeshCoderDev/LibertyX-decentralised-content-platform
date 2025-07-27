@@ -29,8 +29,13 @@ const UserNFTCollection: React.FC = () => {
       }
     };
 
-    loadUserNFTs();
-  }, [account, isConnected, getUserNFTs]);
+    // Use setTimeout to prevent blocking the main thread
+    const timeoutId = setTimeout(() => {
+      loadUserNFTs();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [account, isConnected]); // Remove getUserNFTs to prevent infinite loops
 
   const parseMetadata = (uri: string) => {
     try {

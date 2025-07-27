@@ -194,40 +194,61 @@ export const useNFTAccess = (): UseNFTAccessReturn => {
       const nextId = await nftContract.nextId();
       const holdings: NFTHolding[] = [];
 
-      // Check balance for each tier
-      for (let i = 1; i < nextId; i++) {
-        try {
-          const balance = await nftContract.balanceOf(userAddress, i);
-          if (balance > 0) {
-            const creator = await nftContract.creatorOf(i);
-            const uri = await nftContract.uri(i);
-            
-            holdings.push({
-              tierId: i,
-              amount: Number(balance),
-              tier: {
-                id: i,
-                creatorAddress: creator,
-                uri: uri,
-                maxSupply: 1000, // Placeholder
-                currentSupply: 0, // Placeholder
-                priceWei: '0', // Placeholder
-                priceEth: '0',
-                isActive: true
+      // Limit the number of tiers to check to prevent blocking
+      const maxTiersToCheck = Math.min(Number(nextId), 50);
+
+      // Check balance for each tier with async batching to prevent blocking
+      const batchSize = 5;
+      for (let i = 1; i < maxTiersToCheck; i += batchSize) {
+        const batch = [];
+        
+        for (let j = i; j < Math.min(i + batchSize, maxTiersToCheck); j++) {
+          batch.push(
+            (async () => {
+              try {
+                const balance = await nftContract.balanceOf(userAddress, j);
+                if (balance > 0) {
+                  const creator = await nftContract.creatorOf(j);
+                  const uri = await nftContract.uri(j);
+                  
+                  return {
+                    tierId: j,
+                    amount: Number(balance),
+                    tier: {
+                      id: j,
+                      creatorAddress: creator,
+                      uri: uri,
+                      maxSupply: 1000, // Placeholder
+                      currentSupply: 0, // Placeholder
+                      priceWei: '0', // Placeholder
+                      priceEth: '0',
+                      isActive: true
+                    }
+                  };
+                }
+                return null;
+              } catch (balanceError) {
+                // Error checking balance for this tier, skip
+                return null;
               }
-            });
-          }
-        } catch (balanceError) {
-          // Error checking balance for this tier, skip
-          continue;
+            })()
+          );
         }
+        
+        // Process batch and yield control to prevent blocking
+        const batchResults = await Promise.all(batch);
+        holdings.push(...batchResults.filter(result => result !== null) as NFTHolding[]);
+        
+        // Yield control to prevent blocking the main thread
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
 
       return holdings;
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to get user NFTs';
       setError(errorMessage);
-      throw new Error(errorMessage);
+      console.error('getUserNFTs error:', errorMessage);
+      return []; // Return empty array instead of throwing to prevent blocking
     } finally {
       setIsLoading(false);
     }
