@@ -22,7 +22,7 @@ export const useCreatorRegistry = () => {
   const getCreatorProfile = useCallback(async (address: string, retry: number = 0) => {
     if (!contractManager) {
       console.error('Contract manager not available');
-      setError('Wallet not connected or contracts not initialized');
+      setError('Please connect your wallet and ensure you\'re on Sepolia Testnet');
       return null;
     }
 
@@ -32,10 +32,29 @@ export const useCreatorRegistry = () => {
 
     try {
       console.log('Getting creator profile for address:', address);
+      console.log('Current chain ID:', contractManager.currentChainId);
+      console.log('Contract manager available:', !!contractManager);
       
       const contract = contractManager.getContract('creatorRegistry', contractManager.currentChainId!);
+      console.log('CreatorRegistry contract instance:', contract);
+      console.log('Contract address:', contract?.target);
+      
       if (!contract) {
-        throw new Error('CreatorRegistry contract not found');
+        // Graceful fallback instead of throwing error
+        console.warn(`CreatorRegistry contract not found on chain ${contractManager.currentChainId}`);
+        const fallbackProfile: CreatorProfile = {
+          handle: '',
+          avatarURI: '',
+          bio: 'Creator features coming soon. Please check back later.',
+          kycVerified: false,
+          isBanned: false,
+          earned: '0',
+          isCreator: false,
+        };
+        setCreatorProfile(fallbackProfile);
+        setError('Creator features are currently unavailable. Please try again later.');
+        setIsLoading(false);
+        return fallbackProfile;
       }
 
       // Call the creators mapping from the contract

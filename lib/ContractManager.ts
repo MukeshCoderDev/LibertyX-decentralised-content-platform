@@ -2,6 +2,7 @@ import { ethers, Signer, Provider } from 'ethers';
 import { Chain, TransactionResult, ContractManager as IContractManager } from './web3-types';
 import { getContractInstance } from './contractUtils';
 import { getChainByChainId } from './blockchainConfig';
+import { getContractAddresses } from '../src/config';
 
 class ContractManager implements IContractManager {
   public contracts: IContractManager['contracts'] = {
@@ -40,21 +41,39 @@ class ContractManager implements IContractManager {
       return;
     }
 
+    // Use hardcoded addresses from config for reliability
+    const contractAddresses = getContractAddresses(this.currentChainId);
+    console.log('Using contract addresses for chain', this.currentChainId, ':', contractAddresses);
+
     const chain = getChainByChainId(this.currentChainId);
     if (!chain) {
       console.error(`Chain with ID ${this.currentChainId} not found.`);
       return;
     }
 
-    for (const contractName in chain.contracts) {
-      if (chain.contracts.hasOwnProperty(contractName)) {
-        const contractInstance = getContractInstance(
-          contractName as keyof Chain['contracts'],
-          this.currentChainId,
-          (this.signer || this.provider)! // Assert non-null as we checked above
-        );
-        if (contractInstance) {
-          this.contracts[contractName as keyof IContractManager['contracts']] = contractInstance;
+    // Override chain contracts with our hardcoded addresses
+    const updatedChain = {
+      ...chain,
+      contracts: contractAddresses
+    };
+
+    for (const contractName in updatedChain.contracts) {
+      if (updatedChain.contracts.hasOwnProperty(contractName)) {
+        try {
+          const contractInstance = getContractInstance(
+            contractName as keyof Chain['contracts'],
+            this.currentChainId,
+            (this.signer || this.provider)! // Assert non-null as we checked above
+          );
+          if (contractInstance) {
+            this.contracts[contractName as keyof IContractManager['contracts']] = contractInstance;
+            console.log(`✅ ${contractName} contract initialized at:`, contractInstance.target);
+          } else {
+            console.warn(`⚠️ Failed to initialize ${contractName} contract`);
+          }
+        } catch (error) {
+          console.error(`❌ Error initializing ${contractName}:`, error);
+          // Continue with other contracts instead of failing completely
         }
       }
     }
@@ -71,7 +90,15 @@ class ContractManager implements IContractManager {
       }
       return getContractInstance(contractName, chainId, (this.signer || this.provider)!);
     }
-    return this.contracts[contractName];
+    
+    const contract = this.contracts[contractName];
+    if (!contract) {
+      console.error(`Contract ${contractName} not initialized for chain ${this.currentChainId}`);
+      console.log('Available contracts:', Object.keys(this.contracts));
+      console.log('Requested contract name:', contractName);
+    }
+    
+    return contract;
   }
 
   public async executeTransaction(

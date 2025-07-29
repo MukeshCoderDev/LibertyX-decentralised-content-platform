@@ -1,5 +1,13 @@
 import Arweave from 'arweave';
-import walletKey from '../arweave-wallet.json' assert { type: 'json' };
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Read wallet key from JSON file
+const walletKey = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'arweave-wallet.json'), 'utf8'));
 
 const arweave = Arweave.init({
   host: 'arweave.net',

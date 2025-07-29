@@ -33,14 +33,23 @@ export const getContractInstance = (
   }
 
   const contractAddress = chain.contracts[contractName];
+  console.log(`Getting contract ${contractName} on chain ${chainId}:`);
+  console.log('- Contract address:', contractAddress);
+  console.log('- Chain name:', chain.name);
+  
   if (!contractAddress || contractAddress === '0x...') {
-    console.warn(`Contract address for ${contractName} not configured for chain ID ${chainId}.`);
+    console.warn(`Contract address for ${contractName} not configured for chain ID ${chainId} (${chain.name}).`);
+    console.log('Available contracts for this chain:', Object.keys(chain.contracts));
     return null;
   }
 
   const contractABI = ABIs[contractName];
+  console.log(`- ABI available for ${contractName}:`, !!contractABI);
+  console.log(`- ABI length:`, contractABI?.length || 0);
+  
   if (!contractABI || contractABI.length === 0) {
     console.error(`ABI for contract ${contractName} not found.`);
+    console.log('Available ABIs:', Object.keys(ABIs));
     return null;
   }
 

@@ -1,6 +1,11 @@
-const { ethers } = require('hardhat');
-const fs = require('fs');
-const path = require('path');
+import hre from 'hardhat';
+const { ethers } = hre;
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Multi-network deployment script
 async function deployContracts() {
@@ -155,13 +160,11 @@ function updateEnvironmentConfig(network, contracts) {
 }
 
 // Run deployment
-if (require.main === module) {
-  deployContracts()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
-}
+deployContracts()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 
-module.exports = { deployContracts };
+export { deployContracts };
