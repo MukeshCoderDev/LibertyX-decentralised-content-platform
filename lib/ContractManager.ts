@@ -3,6 +3,7 @@ import { Chain, TransactionResult, ContractManager as IContractManager } from '.
 import { getContractInstance } from './contractUtils';
 import { getChainByChainId } from './blockchainConfig';
 import { getContractAddresses } from '../src/config';
+import ContractHealthChecker, { ContractHealthReport } from './ContractHealthChecker';
 
 class ContractManager implements IContractManager {
   public contracts: IContractManager['contracts'] = {
@@ -18,6 +19,8 @@ class ContractManager implements IContractManager {
   public provider: Provider | null = null;
   public signer: Signer | null = null;
   public currentChainId: number | null = null;
+  public healthChecker: ContractHealthChecker | null = null;
+  public lastHealthReport: ContractHealthReport | null = null;
 
   constructor(signerOrProvider: Signer | Provider, chainId: number) {
     this.setSignerOrProvider(signerOrProvider, chainId);
@@ -32,13 +35,33 @@ class ContractManager implements IContractManager {
       this.signer = null;
     }
     this.currentChainId = chainId;
-    this.initializeContracts();
+    
+    // Initialize health checker
+    if (this.provider) {
+      this.healthChecker = new ContractHealthChecker(this.provider, chainId);
+    }
+    
+    // Initialize contracts asynchronously
+    this.initializeContracts().catch(error => {
+      console.error('Failed to initialize contracts:', error);
+    });
   }
 
-  private initializeContracts() {
+  private async initializeContracts() {
     if (!this.currentChainId || !this.provider) {
       console.warn('Cannot initialize contracts: chainId or provider is missing.');
       return;
+    }
+
+    // Perform health check first
+    if (this.healthChecker) {
+      console.log('🔍 Performing contract health check...');
+      try {
+        this.lastHealthReport = await this.healthChecker.getAllContractsStatus();
+        console.log('📊 Contract health report:', this.lastHealthReport);
+      } catch (error) {
+        console.error('❌ Health check failed:', error);
+      }
     }
 
     // Use hardcoded addresses from config for reliability
@@ -60,6 +83,13 @@ class ContractManager implements IContractManager {
     for (const contractName in updatedChain.contracts) {
       if (updatedChain.contracts.hasOwnProperty(contractName)) {
         try {
+          // Check if contract is healthy before initializing
+          const contractHealth = this.lastHealthReport?.[contractName];
+          if (contractHealth && !contractHealth.isDeployed) {
+            console.warn(`⚠️ Skipping ${contractName} - not deployed at ${contractHealth.address}`);
+            continue;
+          }
+
           const contractInstance = getContractInstance(
             contractName as keyof Chain['contracts'],
             this.currentChainId,
@@ -198,6 +228,60 @@ class ContractManager implements IContractManager {
       console.log(`Event ${eventName} received for ${contractName}:`, args);
       callback(...args);
     });
+  }
+
+  /**
+   * Check if a specific contract is available and healthy
+   */
+  public async isContractAvailable(contractName: keyof Chain['contracts']): Promise<boolean> {
+    if (!this.healthChecker) {
+      console.warn('Health checker not initialized');
+      return false;
+    }
+
+    return await this.healthChecker.checkContractAvailability(contractName);
+  }
+
+  /**
+   * Get the health status of a specific contract
+   */
+  public async getContractHealth(contractName: keyof Chain['contracts']) {
+    if (!this.healthChecker) {
+      console.warn('Health checker not initialized');
+      return null;
+    }
+
+    return await this.healthChecker.getContractStatus(contractName);
+  }
+
+  /**
+   * Refresh the health report for all contracts
+   */
+  public async refreshHealthReport(): Promise<ContractHealthReport | null> {
+    if (!this.healthChecker) {
+      console.warn('Health checker not initialized');
+      return null;
+    }
+
+    try {
+      this.lastHealthReport = await this.healthChecker.getAllContractsStatus();
+      return this.lastHealthReport;
+    } catch (error) {
+      console.error('Failed to refresh health report:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if critical contracts are available
+   */
+  public async checkCriticalContracts() {
+    if (!this.healthChecker) {
+      console.warn('Health checker not initialized');
+      return { available: false, missing: ['health checker not initialized'] };
+    }
+
+    return await this.healthChecker.checkCriticalContracts();
   }
 }
 

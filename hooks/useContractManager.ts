@@ -1,8 +1,9 @@
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import { WalletContext } from '../lib/WalletProvider';
 import ContractManager from '../lib/ContractManager';
 import { getChainByChainId } from '../lib/blockchainConfig';
 import { Chain, TransactionResult } from '../lib/web3-types';
+import { ContractHealthReport } from '../lib/ContractHealthChecker';
 
 interface ContractManagerHook {
   executeTransaction: (
@@ -17,11 +18,20 @@ interface ContractManagerHook {
     callback: Function
   ) => void;
   getContract: (contractName: keyof Chain['contracts'], chainId: number) => any;
+  isContractAvailable: (contractName: keyof Chain['contracts']) => Promise<boolean>;
+  getContractHealth: (contractName: keyof Chain['contracts']) => Promise<any>;
+  refreshHealthReport: () => Promise<ContractHealthReport | null>;
+  checkCriticalContracts: () => Promise<{ available: boolean; missing: string[] }>;
+  healthReport: ContractHealthReport | null;
+  isHealthy: boolean;
+  currentChainId: number | null;
   manager: ContractManager | null;
 }
 
 export const useContractManager = (): ContractManagerHook => {
   const walletContext = useContext(WalletContext);
+  const [healthReport, setHealthReport] = useState<ContractHealthReport | null>(null);
+  const [isHealthy, setIsHealthy] = useState(false);
   
   if (!walletContext) {
     console.error('useContractManager must be used within a WalletProvider');
@@ -29,6 +39,13 @@ export const useContractManager = (): ContractManagerHook => {
       executeTransaction: async () => { throw new Error('Wallet not connected'); },
       listenToEvents: () => {},
       getContract: () => null,
+      isContractAvailable: async () => false,
+      getContractHealth: async () => null,
+      refreshHealthReport: async () => null,
+      checkCriticalContracts: async () => ({ available: false, missing: [] }),
+      healthReport: null,
+      isHealthy: false,
+      currentChainId: null,
       manager: null
     };
   }
@@ -65,6 +82,39 @@ export const useContractManager = (): ContractManagerHook => {
     }
   }, [chainId, isConnected, !!signer, !!provider]); // Use boolean flags instead of objects
 
+  // Health monitoring
+  const updateHealthStatus = useCallback(async () => {
+    if (!contractManager) return;
+
+    try {
+      const report = await contractManager.refreshHealthReport();
+      setHealthReport(report);
+      
+      if (report) {
+        const criticalContracts = ['subscriptionManager', 'nftAccess', 'creatorRegistry'];
+        const healthy = criticalContracts.every(contract => 
+          report[contract]?.isDeployed && report[contract]?.isResponding
+        );
+        setIsHealthy(healthy);
+      }
+    } catch (error) {
+      console.error('Failed to update health status:', error);
+      setIsHealthy(false);
+    }
+  }, [contractManager]);
+
+  // Monitor health periodically
+  useEffect(() => {
+    if (!contractManager) return;
+
+    // Initial health check only - disable periodic monitoring to prevent blinking
+    updateHealthStatus();
+
+    // Disabled periodic monitoring temporarily
+    // const interval = setInterval(updateHealthStatus, 30000);
+    // return () => clearInterval(interval);
+  }, [contractManager]);
+
   return {
     executeTransaction: async (contractName, method, params, options) => {
       if (!contractManager) {
@@ -85,6 +135,27 @@ export const useContractManager = (): ContractManagerHook => {
       }
       return contractManager.getContract(contractName, chainId);
     },
+    isContractAvailable: async (contractName) => {
+      if (!contractManager) return false;
+      return contractManager.isContractAvailable(contractName);
+    },
+    getContractHealth: async (contractName) => {
+      if (!contractManager) return null;
+      return contractManager.getContractHealth(contractName);
+    },
+    refreshHealthReport: async () => {
+      if (!contractManager) return null;
+      const report = await contractManager.refreshHealthReport();
+      setHealthReport(report);
+      return report;
+    },
+    checkCriticalContracts: async () => {
+      if (!contractManager) return { available: false, missing: [] };
+      return contractManager.checkCriticalContracts();
+    },
+    healthReport,
+    isHealthy,
+    currentChainId: chainId,
     manager: contractManager
   };
 };

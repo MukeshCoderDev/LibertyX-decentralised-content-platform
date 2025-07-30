@@ -1,0 +1,16 @@
+{
+  "network": "sepolia",
+  "chainId": "11155111",
+  "deployer": "0x9fAfD8e5EE0FAda57b2118F854D7d7dDd98186A0",
+  "timestamp": "2025-07-30T10:46:38.388Z",
+  "contracts": {
+    "subscriptionManager": {
+      "address": "0xd8819e13267c9a237381fec9aA69b827D980Ae0D",
+      "txHash": "0xc506b385ba8a7ccea140e74347d2d965ce725eefb58906a168faa47081ce45cc"
+    },
+    "nftAccess": {
+      "address": "0xCe964eeadf8655d46FdF5462a4a357b8cDA1ac3F",
+      "txHash": "0xade3236771f27f3fc8ab56a0ce3748ba1db4a3cb0a8c84cfb78643999d4f9f23"
+    }
+  }
+}

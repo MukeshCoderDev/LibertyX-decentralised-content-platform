@@ -24,10 +24,26 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({
   const allTokens = getAllTokens();
   const selectedTokenConfig = allTokens.find(t => t.symbol === selectedToken);
 
-  const filteredTokens = allTokens.filter(token =>
-    token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handle case where no tokens are available
+  if (allTokens.length === 0) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="w-full bg-background border border-border rounded-lg px-3 py-2 text-text-secondary">
+          No tokens available
+        </div>
+      </div>
+    );
+  }
+
+  const filteredTokens = allTokens.filter(token => {
+    try {
+      return token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             token.symbol.toLowerCase().includes(searchTerm.toLowerCase());
+    } catch (error) {
+      console.warn('Error filtering token:', token, error);
+      return false;
+    }
+  });
 
   const handleTokenSelect = (token: TokenConfig) => {
     onTokenSelect(token.symbol);
@@ -138,15 +154,53 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({
               </div>
             ) : (
               // Show by categories
-              Object.entries(TOKEN_CATEGORIES).map(([category, label]) => {
-                const categoryTokens = getTokensByCategory(category as any);
-                return (
-                  <div key={category}>
-                    <div className="px-2 sm:px-3 py-2 text-xs font-medium text-text-secondary bg-background/30 border-b border-border sticky top-0">
-                      {label}
-                    </div>
+              (() => {
+                try {
+                  return Object.entries(TOKEN_CATEGORIES).map(([category, label]) => {
+                    try {
+                      const categoryTokens = getTokensByCategory(category as any);
+                      if (!categoryTokens || categoryTokens.length === 0) return null;
+                      
+                      return (
+                        <div key={category}>
+                          <div className="px-2 sm:px-3 py-2 text-xs font-medium text-text-secondary bg-background/30 border-b border-border sticky top-0">
+                            {label}
+                          </div>
+                          <div className="p-1 sm:p-2">
+                            {categoryTokens.map((token) => (
+                              <button
+                                key={token.symbol}
+                                onClick={() => handleTokenSelect(token)}
+                                className={`w-full flex items-center gap-2 sm:gap-3 p-2 hover:bg-background/50 rounded text-left min-h-[44px] ${
+                                  selectedToken === token.symbol ? 'bg-primary/20' : ''
+                                }`}
+                              >
+                                <span className="text-base sm:text-lg flex-shrink-0">{token.icon}</span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm sm:text-base truncate">{token.symbol}</div>
+                                  <div className="text-xs sm:text-sm text-text-secondary truncate">{token.name}</div>
+                                </div>
+                                {showBalance && balances[token.symbol] && (
+                                  <div className="text-xs sm:text-sm text-green-400 flex-shrink-0">
+                                    {formatBalance(token)}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    } catch (categoryError) {
+                      console.warn('Error loading category:', category, categoryError);
+                      return null;
+                    }
+                  }).filter(Boolean);
+                } catch (error) {
+                  console.error('Error loading token categories:', error);
+                  // Fallback: show all tokens in a simple list
+                  return (
                     <div className="p-1 sm:p-2">
-                      {categoryTokens.map((token) => (
+                      {allTokens.map((token) => (
                         <button
                           key={token.symbol}
                           onClick={() => handleTokenSelect(token)}
@@ -167,9 +221,9 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({
                         </button>
                       ))}
                     </div>
-                  </div>
-                );
-              })
+                  );
+                }
+              })()
             )}
           </div>
         </div>

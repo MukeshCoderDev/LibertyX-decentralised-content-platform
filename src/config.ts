@@ -16,8 +16,8 @@ export const CONTRACT_ADDRESSES = {
     creatorRegistry: '0x28bCAB7F0458CE2ae28c6072E0bE5722A0dCEdCe', // ✅ DEPLOYED!
     contentRegistry: '0x3456789012345678901234567890123456789012', // TODO: Deploy real contract
     revenueSplitter: '0x4567890123456789012345678901234567890123', // TODO: Deploy real contract
-    subscriptionManager: '0x5678901234567890123456789012345678901234', // TODO: Deploy real contract
-    nftAccess: '0x6789012345678901234567890123456789012345', // TODO: Deploy real contract
+    subscriptionManager: '0xd8819e13267c9a237381fec9aA69b827D980Ae0D', // ✅ DEPLOYED!
+    nftAccess: '0xCe964eeadf8655d46FdF5462a4a357b8cDA1ac3F', // ✅ DEPLOYED!
     libertyDAO: '0x7890123456789012345678901234567890123456', // TODO: Deploy real contract
   }
 };

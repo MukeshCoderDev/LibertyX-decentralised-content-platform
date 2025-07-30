@@ -62,35 +62,81 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
       // Get available balances from revenue splitter
       const earningsData = await getCreatorEarnings(account);
       
-      // Create withdrawal options for all supported tokens
+      // Create withdrawal options for commonly used tokens first
+      const priorityTokens = ['ETH', 'LIB', 'USDC', 'USDT', 'DAI'];
       const allTokens = getAllTokens();
-      const options: WithdrawalOption[] = allTokens.map(tokenConfig => {
+      
+      // Sort tokens to show priority tokens first
+      const sortedTokens = [
+        ...allTokens.filter(t => priorityTokens.includes(t.symbol)),
+        ...allTokens.filter(t => !priorityTokens.includes(t.symbol))
+      ];
+
+      const options: WithdrawalOption[] = sortedTokens.map(tokenConfig => {
         // Find matching balance from earnings data
         const matchingBalance = earningsData.availableBalance.find(
           balance => balance.symbol === tokenConfig.symbol
         );
         
+        const balanceAmount = matchingBalance?.amount || '0';
+        const hasBalance = parseFloat(balanceAmount) > 0;
+        
         return {
           token: tokenConfig.symbol,
           symbol: tokenConfig.symbol,
           icon: tokenConfig.icon,
-          balance: matchingBalance?.amount || '0',
+          balance: balanceAmount,
           decimals: tokenConfig.decimals,
-          available: matchingBalance ? parseFloat(matchingBalance.amount) > 0 : false,
+          available: hasBalance,
           category: tokenConfig.category
         };
       });
 
       setWithdrawalOptions(options);
       
-      // Auto-select first available token
+      // Auto-select first available token, or ETH if none available
       const availableOption = options.find(opt => opt.available);
+      const ethOption = options.find(opt => opt.symbol === 'ETH');
+      
       if (availableOption) {
         setSelectedToken(availableOption.token);
+        console.log('Selected available token:', availableOption.token);
+      } else if (ethOption) {
+        setSelectedToken(ethOption.token);
+        console.log('Selected ETH as fallback');
+      } else if (options.length > 0) {
+        setSelectedToken(options[0].token);
+        console.log('Selected first token:', options[0].token);
       }
+      
+      console.log('Withdrawal options loaded:', options.length, 'tokens');
+      
+      // Clear any previous errors if loading was successful
+      setError('');
+      
     } catch (error) {
       console.error('Error loading withdrawal options:', error);
-      setError('Failed to load withdrawal options');
+      setError('Unable to load token balances. Please check your connection and try again.');
+      
+      // Provide fallback options even if loading fails
+      const fallbackTokens = ['ETH', 'LIB', 'USDC'];
+      const fallbackOptions: WithdrawalOption[] = fallbackTokens.map(symbol => {
+        const tokenConfig = getTokenConfig(symbol);
+        return {
+          token: symbol,
+          symbol: symbol,
+          icon: tokenConfig?.icon || '💰',
+          balance: '0',
+          decimals: tokenConfig?.decimals || 18,
+          available: false,
+          category: tokenConfig?.category || 'major'
+        };
+      });
+      
+      setWithdrawalOptions(fallbackOptions);
+      if (fallbackOptions.length > 0) {
+        setSelectedToken(fallbackOptions[0].token);
+      }
     } finally {
       setLoading(false);
     }
@@ -207,7 +253,16 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
       
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
-          <p className="text-red-400 text-sm">{error}</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-red-400 text-sm flex-1">{error}</p>
+            <button
+              onClick={loadWithdrawalOptions}
+              className="text-red-400 hover:text-red-300 text-sm font-medium px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Retry'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -245,16 +300,22 @@ const WithdrawalInterface: React.FC<WithdrawalInterfaceProps> = ({ onWithdrawalC
         <label className="block text-sm font-medium text-text-secondary mb-2">
           Select Token
         </label>
-        <TokenSelector
-          selectedToken={selectedToken}
-          onTokenSelect={setSelectedToken}
-          showBalance={true}
-          balances={withdrawalOptions.reduce((acc, opt) => {
-            acc[opt.symbol] = opt.balance;
-            return acc;
-          }, {} as Record<string, string>)}
-          disabled={isWithdrawing}
-        />
+        {withdrawalOptions.length > 0 ? (
+          <TokenSelector
+            selectedToken={selectedToken}
+            onTokenSelect={setSelectedToken}
+            showBalance={true}
+            balances={withdrawalOptions.reduce((acc, opt) => {
+              acc[opt.symbol] = opt.balance;
+              return acc;
+            }, {} as Record<string, string>)}
+            disabled={isWithdrawing}
+          />
+        ) : (
+          <div className="w-full bg-background border border-border rounded-lg px-3 py-2 text-text-secondary">
+            {loading ? 'Loading tokens...' : 'No tokens available'}
+          </div>
+        )}
       </div>
 
       {/* Amount Input - Mobile Optimized */}
