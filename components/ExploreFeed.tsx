@@ -123,7 +123,7 @@ const ExploreFeed: React.FC<NavigationProps> = memo(({ onNavigate }) => {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`px-4 py-2 text-sm font-satoshi font-medium rounded-full transition-colors ${
-                  activeCategory === cat ? 'bg-primary text-white' : 'bg-card text-text-secondary hover:bg-opacity-80'
+                  activeCategory === cat ? 'bg-primary text-white' : 'bg-card text-white/90 hover:text-white hover:bg-white/10'
                 }`}
               >
                 {cat === 'Verified' ? <VerifiedIcon className="w-4 h-4 inline mr-1"/> : null}
@@ -202,7 +202,7 @@ const ExploreFeed: React.FC<NavigationProps> = memo(({ onNavigate }) => {
         <div className="text-center mt-12">
           <button 
             onClick={handleLoadMore}
-            className="bg-card text-text-secondary px-6 py-3 rounded-full hover:bg-primary hover:text-white transition-colors"
+            className="bg-card text-white/90 px-6 py-3 rounded-full hover:bg-primary hover:text-white transition-colors border border-white/20"
           >
             Load More ({exploreFeedData.length - displayedItems} remaining)
           </button>

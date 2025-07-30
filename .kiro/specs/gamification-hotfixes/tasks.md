@@ -2,14 +2,12 @@
 
 - [x] 1. Fix GamificationDashboard Props Issue
 
-
   - Remove the duplicate GamificationDashboard component in src/components/gamification/
   - Update the main GamificationDashboard component to handle wallet connection internally
   - Add wallet connection prompt when no wallet is connected
   - _Requirements: 1.1, 1.2, 1.3_
 
 - [x] 2. Fix useGamification Hook Dependencies
-
 
   - Fix infinite re-render loops by properly managing dependencies in useEffect
   - Add proper cleanup functions for component unmounting
@@ -45,7 +43,6 @@
   - _Requirements: 3.1, 3.2, 3.3_
 
 - [x] 7. Update Tests
-
 
   - Update existing gamification tests to match new component structure
   - Add tests for error handling scenarios

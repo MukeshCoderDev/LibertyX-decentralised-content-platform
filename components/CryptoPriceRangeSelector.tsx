@@ -189,13 +189,13 @@ const CryptoPriceRangeSelector: React.FC<CryptoPriceRangeSelectorProps> = ({
     <div className={`flex flex-col gap-3 ${className}`}>
       {/* Token Selector */}
       <div className="flex items-center gap-2">
-        <label className="font-satoshi text-sm text-text-secondary whitespace-nowrap">
+        <label className="font-satoshi text-sm text-white/90 whitespace-nowrap">
           Price Token
         </label>
         <select
           value={selectedToken}
           onChange={(e) => onTokenChange(e.target.value)}
-          className="bg-card border border-border rounded-lg px-3 py-1 text-sm font-satoshi focus:outline-none focus:border-primary"
+          className="bg-card border border-border rounded-lg px-3 py-1 text-sm font-satoshi text-white/90 focus:outline-none focus:border-primary focus:text-white"
         >
           {tokenOptions.map(token => (
             <option key={token.symbol} value={token.symbol}>
@@ -207,7 +207,7 @@ const CryptoPriceRangeSelector: React.FC<CryptoPriceRangeSelectorProps> = ({
 
       {/* Price Range Slider */}
       <div className="flex items-center gap-4">
-        <label className="font-satoshi text-sm text-text-secondary whitespace-nowrap">
+        <label className="font-satoshi text-sm text-white/90 whitespace-nowrap">
           Max Price
         </label>
         <input

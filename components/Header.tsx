@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                                     font-satoshi text-lg font-medium transition-all duration-200 relative px-3 py-2 rounded-lg
                                     ${currentPage === item.page 
                                         ? 'text-primary bg-primary/10 shadow-sm' 
-                                        : 'text-text-secondary hover:text-white hover:bg-white/5'
+                                        : 'text-white/90 hover:text-white hover:bg-white/5'
                                     }
                                     ${currentPage === item.page 
                                         ? 'after:absolute after:bottom-[-8px] after:left-1/2 after:transform after:-translate-x-1/2 after:w-8 after:h-0.5 after:bg-primary after:rounded-full after:shadow-sm' 
@@ -203,7 +203,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
                             flex flex-col items-center font-satoshi text-xs font-medium transition-all duration-200 w-full p-2 rounded-lg relative
                             ${currentPage === item.page 
                                 ? 'text-primary bg-primary/15 shadow-sm scale-105' 
-                                : 'text-text-secondary hover:text-white hover:bg-white/5 hover:scale-102'
+                                : 'text-white/90 hover:text-white hover:bg-white/5 hover:scale-102'
                             }
                             ${currentPage === item.page 
                                 ? 'after:absolute after:top-0 after:left-1/2 after:transform after:-translate-x-1/2 after:w-8 after:h-0.5 after:bg-primary after:rounded-full after:shadow-sm' 
