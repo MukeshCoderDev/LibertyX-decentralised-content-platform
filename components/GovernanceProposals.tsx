@@ -1,297 +1,259 @@
-import React, { useEffect, useContext, useState } from 'react';
-import { WalletContext } from '../lib/WalletProvider';
-import { useLibertyDAO, Proposal } from '../hooks/useLibertyDAO';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Proposal, VotingPower } from '../types';
+import { ProposalCard } from './ProposalCard';
 
 interface GovernanceProposalsProps {
-  className?: string;
+  proposals: Proposal[];
+  votingPower: VotingPower | null;
+  isLoading: boolean;
+  error: string | null;
+  onVote: (proposalId: number, support: boolean) => Promise<boolean>;
+  onExecute: (proposalId: number) => Promise<boolean>;
+  onRetry: () => void;
 }
 
-const ProposalCard: React.FC<{ 
-  proposal: Proposal; 
-  onVote: (proposalId: number, support: boolean) => void;
-  onExecute: (proposalId: number) => void;
-  canVote: boolean;
-  isLoading: boolean;
-}> = ({ proposal, onVote, onExecute, canVote, isLoading }) => {
-  const getStatusColor = (status: Proposal['status']) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'ended':
-        return 'bg-blue-100 text-blue-800';
-      case 'executed':
-        return 'bg-purple-100 text-purple-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+type FilterType = 'all' | 'active' | 'ended' | 'executed';
 
-  const formatVotes = (votes: string) => {
-    const num = parseFloat(votes) / 1e18; // Convert from wei to LIB
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(2)}M`;
-    } else if (num >= 1000) {
-      return `${(num / 1000).toFixed(2)}K`;
+export const GovernanceProposals: React.FC<GovernanceProposalsProps> = ({
+  proposals,
+  votingPower,
+  isLoading,
+  error,
+  onVote,
+  onExecute,
+  onRetry,
+}) => {
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [showLoading, setShowLoading] = useState(isLoading);
+
+  // Force stop loading after 3 seconds
+  useEffect(() => {
+    if (isLoading) {
+      const timeout = setTimeout(() => {
+        console.log('GovernanceProposals: Forcing loading to stop');
+        setShowLoading(false);
+      }, 3000);
+      return () => clearTimeout(timeout);
     } else {
-      return num.toFixed(2);
+      setShowLoading(false);
     }
-  };
+  }, [isLoading]);
 
-  const getTimeRemaining = (endTime: number) => {
-    const now = Math.floor(Date.now() / 1000);
-    const remaining = endTime - now;
-    
-    if (remaining <= 0) return 'Voting ended';
-    
-    const days = Math.floor(remaining / 86400);
-    const hours = Math.floor((remaining % 86400) / 3600);
-    const minutes = Math.floor((remaining % 3600) / 60);
-    
-    if (days > 0) return `${days}d ${hours}h remaining`;
-    if (hours > 0) return `${hours}h ${minutes}m remaining`;
-    return `${minutes}m remaining`;
-  };
+  // Filter proposals based on selected filter
+  const filteredProposals = useMemo(() => {
+    if (filter === 'all') return proposals;
+    return proposals.filter(proposal => {
+      switch (filter) {
+        case 'active':
+          return proposal.status === 'active';
+        case 'ended':
+          return proposal.status === 'ended';
+        case 'executed':
+          return proposal.status === 'executed';
+        default:
+          return true;
+      }
+    });
+  }, [proposals, filter]);
 
-  const totalVotes = parseFloat(proposal.votesFor) + parseFloat(proposal.votesAgainst);
-  const forPercentage = totalVotes > 0 ? (parseFloat(proposal.votesFor) / totalVotes) * 100 : 0;
-  const againstPercentage = totalVotes > 0 ? (parseFloat(proposal.votesAgainst) / totalVotes) * 100 : 0;
+  // Get filter counts
+  const filterCounts = useMemo(() => {
+    return {
+      all: proposals.length,
+      active: proposals.filter(p => p.status === 'active').length,
+      ended: proposals.filter(p => p.status === 'ended').length,
+      executed: proposals.filter(p => p.status === 'executed').length,
+    };
+  }, [proposals]);
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <span className="text-lg font-semibold text-gray-900">#{proposal.id}</span>
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}>
-            {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
-          </span>
-        </div>
-        <div className="text-right text-sm text-gray-500">
-          {proposal.status === 'active' ? getTimeRemaining(proposal.endTime) : 
-           new Date(proposal.endTime * 1000).toLocaleDateString()}
-        </div>
-      </div>
+  const FilterButton: React.FC<{ 
+    filterType: FilterType; 
+    label: string; 
+    count: number; 
+  }> = ({ filterType, label, count }) => (
+    <button
+      onClick={() => setFilter(filterType)}
+      className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+        filter === filterType
+          ? 'bg-primary text-white shadow-sm'
+          : 'bg-card text-text-secondary hover:bg-primary/10 hover:text-white'
+      }`}
+      aria-label={`Filter by ${label} proposals`}
+    >
+      {label} ({count})
+    </button>
+  );
 
-      <div className="mb-4">
-        <p className="text-gray-800 leading-relaxed">{proposal.description}</p>
-      </div>
-
-      <div className="mb-4">
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-          <span>Voting Results</span>
-          <span>{proposal.quorumReached ? '✓ Quorum reached' : '⚠ Quorum not reached'}</span>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-green-600 font-medium">For</span>
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${forPercentage}%` }}
-                ></div>
-              </div>
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className="space-y-6">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="bg-card border border-gray-700 rounded-lg p-6 animate-pulse">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="h-6 bg-gray-600 rounded w-24"></div>
+              <div className="h-5 bg-gray-600 rounded w-16"></div>
             </div>
-            <span className="text-sm font-medium">{formatVotes(proposal.votesFor)} LIB</span>
+            <div className="h-4 bg-gray-600 rounded w-20"></div>
           </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-red-600 font-medium">Against</span>
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-red-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${againstPercentage}%` }}
-                ></div>
-              </div>
-            </div>
-            <span className="text-sm font-medium">{formatVotes(proposal.votesAgainst)} LIB</span>
+          <div className="mb-6">
+            <div className="h-4 bg-gray-600 rounded w-full mb-2"></div>
+            <div className="h-4 bg-gray-600 rounded w-3/4"></div>
+          </div>
+          <div className="space-y-3">
+            <div className="h-4 bg-gray-600 rounded w-32"></div>
+            <div className="h-2 bg-gray-600 rounded w-full"></div>
+            <div className="h-2 bg-gray-600 rounded w-full"></div>
           </div>
         </div>
-      </div>
-
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        {proposal.status === 'active' && canVote && !proposal.hasVoted && (
-          <div className="flex space-x-2">
-            <button
-              onClick={() => onVote(proposal.id, true)}
-              disabled={isLoading}
-              className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Vote For
-            </button>
-            <button
-              onClick={() => onVote(proposal.id, false)}
-              disabled={isLoading}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Vote Against
-            </button>
-          </div>
-        )}
-        
-        {proposal.status === 'ended' && proposal.passed && proposal.quorumReached && !proposal.executed && (
-          <button
-            onClick={() => onExecute(proposal.id)}
-            disabled={isLoading}
-            className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Execute Proposal
-          </button>
-        )}
-        
-        {proposal.hasVoted && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <span>✓ You voted</span>
-            <span className={proposal.userVote ? 'text-green-600' : 'text-red-600'}>
-              {proposal.userVote ? 'For' : 'Against'}
-            </span>
-          </div>
-        )}
-        
-        {!canVote && proposal.status === 'active' && (
-          <div className="text-sm text-gray-500">
-            You need LIB tokens to vote
-          </div>
-        )}
-      </div>
+      ))}
     </div>
   );
-};
 
-export const GovernanceProposals: React.FC<GovernanceProposalsProps> = ({ className = '' }) => {
-  const walletContext = useContext(WalletContext);
-  const { proposals, votingPower, getAllProposals, vote, executeProposal, isLoading, error } = useLibertyDAO();
-  const [filter, setFilter] = useState<'all' | 'active' | 'ended' | 'executed'>('all');
-
-  useEffect(() => {
-    if (walletContext?.account) {
-      getAllProposals(walletContext.account);
-    }
-  }, [walletContext?.account, getAllProposals]);
-
-  const handleVote = async (proposalId: number, support: boolean) => {
-    try {
-      await vote(proposalId, support);
-      // Refresh proposals after voting
-      if (walletContext?.account) {
-        getAllProposals(walletContext.account);
-      }
-    } catch (error) {
-      console.error('Voting failed:', error);
-    }
-  };
-
-  const handleExecute = async (proposalId: number) => {
-    try {
-      await executeProposal(proposalId);
-      // Refresh proposals after execution
-      if (walletContext?.account) {
-        getAllProposals(walletContext.account);
-      }
-    } catch (error) {
-      console.error('Execution failed:', error);
-    }
-  };
-
-  const filteredProposals = proposals.filter(proposal => {
-    if (filter === 'all') return true;
-    return proposal.status === filter;
-  });
-
-  if (!walletContext?.isConnected) {
-    return (
-      <div className={`bg-gray-100 rounded-lg p-8 text-center ${className}`}>
-        <div className="text-gray-600">
-          <h3 className="text-lg font-medium mb-2">Connect Wallet to View Proposals</h3>
-          <p className="text-sm">Connect your wallet to participate in governance and view proposals.</p>
-        </div>
+  // Error state component
+  const ErrorState = () => (
+    <div className="text-center py-12">
+      <div className="text-red-500 mb-4">
+        <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
       </div>
-    );
-  }
+      <h3 className="text-lg font-semibold text-white mb-2">Failed to Load Proposals</h3>
+      <p className="text-text-secondary mb-6 max-w-md mx-auto">
+        {error || 'An error occurred while loading governance proposals. Please try again.'}
+      </p>
+      <button
+        onClick={onRetry}
+        className="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 flex items-center mx-auto"
+      >
+        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Retry
+      </button>
+    </div>
+  );
+
+  // Empty state component
+  const EmptyState = () => (
+    <div className="text-center py-12">
+      <div className="text-text-secondary mb-4">
+        <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-white mb-2">
+        {filter === 'all' ? 'No Proposals Yet' : `No ${filter.charAt(0).toUpperCase() + filter.slice(1)} Proposals`}
+      </h3>
+      <p className="text-text-secondary mb-6 max-w-md mx-auto">
+        {filter === 'all' 
+          ? 'Be the first to create a governance proposal and help shape the future of LibertyX.'
+          : `There are currently no ${filter} proposals. Check back later or try a different filter.`
+        }
+      </p>
+      {filter !== 'all' && (
+        <button
+          onClick={() => setFilter('all')}
+          className="text-primary hover:text-primary-dark font-medium transition-colors duration-200"
+        >
+          View All Proposals
+        </button>
+      )}
+    </div>
+  );
 
   return (
-    <div className={className}>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Governance Proposals</h2>
-        <div className="flex space-x-2">
-          {(['all', 'active', 'ended', 'executed'] as const).map((filterOption) => (
-            <button
-              key={filterOption}
-              onClick={() => setFilter(filterOption)}
-              className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                filter === filterOption
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
-            </button>
-          ))}
+    <div className="space-y-6">
+      {/* Header with filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">Governance Proposals</h2>
+          <p className="text-text-secondary">
+            Vote on proposals that shape the future of the LibertyX platform
+          </p>
+        </div>
+        
+        {/* Filter buttons */}
+        <div className="flex flex-wrap gap-2">
+          <FilterButton filterType="all" label="All" count={filterCounts.all} />
+          <FilterButton filterType="active" label="Active" count={filterCounts.active} />
+          <FilterButton filterType="ended" label="Ended" count={filterCounts.ended} />
+          <FilterButton filterType="executed" label="Executed" count={filterCounts.executed} />
         </div>
       </div>
 
-      {isLoading && proposals.length === 0 ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="h-6 bg-gray-300 rounded w-12"></div>
-                  <div className="h-5 bg-gray-300 rounded w-20"></div>
-                </div>
-                <div className="h-4 bg-gray-300 rounded w-full"></div>
-                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-300 rounded w-full"></div>
-                  <div className="h-3 bg-gray-300 rounded w-full"></div>
-                </div>
-              </div>
+      {/* Content */}
+      <div className="min-h-[400px]">
+        {error ? (
+          <ErrorState />
+        ) : showLoading ? (
+          <LoadingSkeleton />
+        ) : filteredProposals.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="space-y-6">
+            {/* Results summary */}
+            <div className="flex items-center justify-between text-sm text-text-secondary">
+              <span>
+                Showing {filteredProposals.length} of {proposals.length} proposals
+              </span>
+              {filter !== 'all' && (
+                <button
+                  onClick={() => setFilter('all')}
+                  className="text-primary hover:text-primary-dark transition-colors duration-200"
+                >
+                  Clear filter
+                </button>
+              )}
             </div>
-          ))}
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <div className="text-red-600">
-            <h3 className="text-lg font-medium mb-2">Error Loading Proposals</h3>
-            <p className="text-sm">{error}</p>
-            <button
-              onClick={() => walletContext?.account && getAllProposals(walletContext.account)}
-              className="mt-3 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
-            >
-              Retry
-            </button>
+
+            {/* Proposals grid */}
+            <div className="grid gap-6">
+              {filteredProposals.map((proposal) => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  votingPower={votingPower}
+                  isLoading={isLoading}
+                  onVote={onVote}
+                  onExecute={onExecute}
+                />
+              ))}
+            </div>
+
+            {/* Load more button (for future pagination) */}
+            {filteredProposals.length >= 10 && (
+              <div className="text-center pt-6">
+                <button
+                  className="bg-card hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 border border-gray-600"
+                  disabled
+                >
+                  Load More Proposals (Coming Soon)
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Help text */}
+      <div className="bg-card border border-gray-700 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+          <div>
+            <h4 className="font-medium text-white mb-1">How Governance Works</h4>
+            <ul className="text-sm text-text-secondary space-y-1">
+              <li>• Proposals require 1,000 LIB tokens to create</li>
+              <li>• Voting is open to all LIB token holders</li>
+              <li>• Proposals need 500,000 LIB votes to reach quorum</li>
+              <li>• Voting period lasts 7 days from creation</li>
+              <li>• Approved proposals can be executed by anyone</li>
+            </ul>
           </div>
         </div>
-      ) : filteredProposals.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <div className="text-gray-600">
-            <h3 className="text-lg font-medium mb-2">
-              {filter === 'all' ? 'No Proposals Yet' : `No ${filter} Proposals`}
-            </h3>
-            <p className="text-sm">
-              {filter === 'all' 
-                ? 'Be the first to create a governance proposal!' 
-                : `There are no ${filter} proposals at the moment.`}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredProposals.map((proposal) => (
-            <ProposalCard
-              key={proposal.id}
-              proposal={proposal}
-              onVote={handleVote}
-              onExecute={handleExecute}
-              canVote={votingPower?.canVote || false}
-              isLoading={isLoading}
-            />
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
