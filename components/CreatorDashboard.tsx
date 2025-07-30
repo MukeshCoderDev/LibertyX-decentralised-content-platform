@@ -104,6 +104,10 @@ const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
                     <span className="hidden sm:inline">Advanced Analytics</span>
                     <span className="sm:hidden ml-2">Analytics</span>
                 </button>
+                
+                {/* Spacer to push the last two tabs to the right */}
+                <div className="hidden sm:flex sm:flex-1"></div>
+                
                 <button
                     onClick={() => setActiveTab('audience')}
                     className={`px-3 sm:px-4 py-2 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] whitespace-nowrap ${
