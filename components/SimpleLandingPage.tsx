@@ -1,24 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Page, NavigationProps } from '../types';
 import Button from './ui/Button';
 import MetamaskIcon from './icons/MetamaskIcon';
 import WalletConnectIcon from './icons/WalletConnectIcon';
 import ArweaveIcon from './icons/ArweaveIcon';
-import PromotionalVideoBackground from './PromotionalVideoBackground';
-import VideoPreferenceToggle from './VideoPreferenceToggle';
-import { analyticsService } from '../lib/analyticsService';
+import SimplePromotionalVideo from './SimplePromotionalVideo';
 
-const LandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
-  const [videoEnabled, setVideoEnabled] = useState(true);
-  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
-
-  const handleButtonClick = async (buttonType: string, page: Page) => {
-    if (currentVideoId) {
-      await analyticsService.trackClick(currentVideoId, buttonType);
-    }
-    onNavigate(page);
-  };
-
+const SimpleLandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
   return (
     <div style={{
       position: 'relative',
@@ -31,20 +19,7 @@ const LandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
       overflow: 'hidden'
     }}>
       {/* Background Video */}
-      {videoEnabled && (
-        <PromotionalVideoBackground 
-          onVideoLoad={(video) => {
-            console.log('Loaded promotional video:', video.title);
-            setCurrentVideoId(video.id);
-          }}
-          onVideoError={(error) => console.warn('Promotional video error:', error.message)}
-        />
-      )}
-      
-      {/* Video Preference Toggle */}
-      <VideoPreferenceToggle 
-        onToggle={setVideoEnabled}
-      />
+      <SimplePromotionalVideo />
 
       {/* Content */}
       <div style={{
@@ -66,7 +41,7 @@ const LandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
         }}>
           Own Your Pleasure.
           <br />
-          <span style={{ color: 'var(--primary-color, #007bff)' }}>Earn 90%.</span> Forever.
+          <span style={{ color: '#007bff' }}>Earn 90%.</span> Forever.
         </h1>
 
         <div style={{
@@ -75,10 +50,10 @@ const LandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
           gap: '16px',
           marginBottom: '64px'
         }}>
-          <Button variant="primary" onClick={() => handleButtonClick('upload_button', Page.Upload)}>
+          <Button variant="primary" onClick={() => onNavigate(Page.Upload)}>
             Upload in 5 min
           </Button>
-          <Button variant="outline" onClick={() => handleButtonClick('explore_button', Page.Explore)}>
+          <Button variant="outline" onClick={() => onNavigate(Page.Explore)}>
             Explore Now
           </Button>
         </div>
@@ -90,7 +65,7 @@ const LandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
           alignItems: 'center'
         }}>
             <p style={{
-              color: 'var(--text-secondary, #888)',
+              color: '#888',
               marginBottom: '16px',
               fontFamily: 'satoshi'
             }}>Powered by</p>
@@ -102,19 +77,19 @@ const LandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
                 <MetamaskIcon style={{
                   height: '40px',
                   width: '40px',
-                  color: 'var(--text-secondary, #888)',
+                  color: '#888',
                   transition: 'color 0.3s'
                 }} />
                 <WalletConnectIcon style={{
                   height: '40px',
                   width: '40px',
-                  color: 'var(--text-secondary, #888)',
+                  color: '#888',
                   transition: 'color 0.3s'
                 }} />
                 <ArweaveIcon style={{
                   height: '40px',
                   width: '40px',
-                  color: 'var(--text-secondary, #888)',
+                  color: '#888',
                   transition: 'color 0.3s'
                 }} />
             </div>
@@ -124,4 +99,4 @@ const LandingPage: React.FC<NavigationProps> = ({ onNavigate }) => {
   );
 };
 
-export default LandingPage;
+export default SimpleLandingPage;
