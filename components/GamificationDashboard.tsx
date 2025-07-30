@@ -6,6 +6,9 @@ import { CreatorGoals } from './CreatorGoals';
 import { CommunityRewards } from './CommunityRewards';
 import { TokenStaking } from './TokenStaking';
 import { SeasonalEvents } from './SeasonalEvents';
+import { LoadingSpinner } from './shared/LoadingSpinner';
+import { ErrorDisplay } from './shared/ErrorDisplay';
+import { WalletConnectionPrompt } from './shared/WalletConnectionPrompt';
 
 interface Achievement {
   id: string;
@@ -36,19 +39,22 @@ interface UserStats {
 }
 
 export const GamificationDashboard: React.FC = () => {
-  const { account } = useWallet();
+  const { account, connectWallet } = useWallet();
   const {
     userStats,
     achievements,
     claimReward,
     getSeasonalEvents,
     getReferralLink,
-    isLoading
+    isLoading,
+    error,
+    refreshData
   } = useGamification();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'rewards' | 'events' | 'goals' | 'community' | 'staking'>('overview');
   const [seasonalEvents, setSeasonalEvents] = useState([]);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
+  const [seasonalEventsLoading, setSeasonalEventsLoading] = useState(false);
 
   useEffect(() => {
     setIsComponentMounted(true);
@@ -69,6 +75,9 @@ export const GamificationDashboard: React.FC = () => {
   }, [account]);
 
   const loadSeasonalEvents = async () => {
+    if (!account) return;
+    
+    setSeasonalEventsLoading(true);
     try {
       const events = await getSeasonalEvents();
       setSeasonalEvents(events);
@@ -76,6 +85,8 @@ export const GamificationDashboard: React.FC = () => {
       console.error('Failed to load seasonal events:', error);
       // Set empty array to prevent infinite loading
       setSeasonalEvents([]);
+    } finally {
+      setSeasonalEventsLoading(false);
     }
   };
 
@@ -108,10 +119,33 @@ export const GamificationDashboard: React.FC = () => {
     return colors[rarity as keyof typeof colors] || colors.common;
   };
 
+  // Show wallet connection prompt if no wallet is connected
+  if (!account) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <WalletConnectionPrompt />
+      </div>
+    );
+  }
+
+  // Show loading state
   if (isLoading || !isComponentMounted) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="max-w-6xl mx-auto p-6">
+        <LoadingSpinner size="lg" message="Loading your gamification data..." />
+      </div>
+    );
+  }
+
+  // Show error state with retry option
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <ErrorDisplay 
+          error={error} 
+          onRetry={refreshData}
+          showRetry={true}
+        />
       </div>
     );
   }
@@ -148,8 +182,8 @@ export const GamificationDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-1 bg-gray-100 rounded-lg p-1">
+      {/* Navigation Tabs - Mobile Responsive */}
+      <div className="flex flex-wrap gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto">
         {[
           { id: 'overview', label: 'Overview', icon: Trophy },
           { id: 'achievements', label: 'Achievements', icon: Star },
@@ -166,54 +200,55 @@ export const GamificationDashboard: React.FC = () => {
               e.stopPropagation();
               setActiveTab(id as any);
             }}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-md font-medium transition-colors text-sm ${
+            className={`flex items-center space-x-2 px-3 py-2 rounded-md font-medium transition-colors text-sm min-h-[44px] whitespace-nowrap ${
               activeTab === id
                 ? 'bg-white text-blue-600 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <Icon className="w-4 h-4" />
-            <span>{label}</span>
+            <span className="hidden sm:inline">{label}</span>
+            <span className="sm:hidden">{label.split(' ')[0]}</span>
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Stats Cards */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Zap className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total XP</p>
-                <p className="text-2xl font-bold">{userStats?.totalXp?.toLocaleString() || 0}</p>
+                <p className="text-xl md:text-2xl font-bold">{userStats?.totalXp?.toLocaleString() || 0}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-green-100 rounded-lg">
                 <Trophy className="w-6 h-6 text-green-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Achievements</p>
-                <p className="text-2xl font-bold">{userStats?.achievements?.filter(a => a.completed).length || 0}</p>
+                <p className="text-xl md:text-2xl font-bold">{userStats?.achievements?.filter(a => a.completed).length || 0}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border sm:col-span-2 lg:col-span-1">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Crown className="w-6 h-6 text-purple-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Referrals</p>
-                <p className="text-2xl font-bold">{userStats?.referralCount || 0}</p>
+                <p className="text-xl md:text-2xl font-bold">{userStats?.referralCount || 0}</p>
               </div>
             </div>
           </div>
@@ -221,7 +256,7 @@ export const GamificationDashboard: React.FC = () => {
       )}
 
       {activeTab === 'achievements' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {achievements?.map((achievement) => (
             <div
               key={achievement.id}
@@ -229,13 +264,13 @@ export const GamificationDashboard: React.FC = () => {
                 achievement.completed ? 'opacity-100' : 'opacity-75'
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">{achievement.icon}</div>
-                  <div>
-                    <h3 className="font-semibold">{achievement.name}</h3>
-                    <p className="text-sm text-gray-600">{achievement.description}</p>
-                    <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-start justify-between flex-col sm:flex-row gap-3">
+                <div className="flex items-center space-x-3 flex-1">
+                  <div className="text-2xl flex-shrink-0">{achievement.icon}</div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold truncate">{achievement.name}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">{achievement.description}</p>
+                    <div className="flex items-center space-x-2 mt-2 flex-wrap">
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                         +{achievement.reward.xp} XP
                       </span>
@@ -254,7 +289,7 @@ export const GamificationDashboard: React.FC = () => {
                       e.stopPropagation();
                       handleClaimReward(achievement.id);
                     }}
-                    className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                    className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors min-h-[44px] whitespace-nowrap"
                   >
                     Claim
                   </button>
@@ -267,11 +302,16 @@ export const GamificationDashboard: React.FC = () => {
                     <span>Progress</span>
                     <span>{achievement.progress} / {achievement.maxProgress}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
-                      className="bg-blue-600 rounded-full h-2 transition-all duration-300"
-                      style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
+                      className="bg-blue-600 rounded-full h-3 transition-all duration-300"
+                      style={{ 
+                        width: `${Math.min(100, Math.max(0, (achievement.progress / achievement.maxProgress) * 100))}%` 
+                      }}
                     ></div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {Math.round((achievement.progress / achievement.maxProgress) * 100)}% complete
                   </div>
                 </div>
               )}

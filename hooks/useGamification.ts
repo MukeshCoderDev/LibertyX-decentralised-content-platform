@@ -278,7 +278,7 @@ export const useGamification = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, contracts]);
+  }, [account, contracts]); // Fixed: proper dependencies for loadUserData
 
   // Award XP for actions
   const awardXP = useCallback(async (action: string, amount: number) => {
@@ -462,7 +462,7 @@ export const useGamification = () => {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [account, contracts]); // Remove loadUserData from dependencies to prevent infinite loops
+  }, [account, contracts, loadUserData]); // Fixed: properly include loadUserData in dependencies
 
   return {
     userStats,

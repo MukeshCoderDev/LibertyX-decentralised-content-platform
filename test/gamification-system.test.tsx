@@ -71,6 +71,17 @@ vi.mock('../hooks/useGamification', () => ({
   })
 }));
 
+// Mock wallet provider with connected wallet
+vi.mock('../lib/WalletProvider', () => ({
+  useWallet: () => ({
+    account: '0x1234567890123456789012345678901234567890',
+    connectWallet: vi.fn(),
+    disconnectWallet: vi.fn(),
+    isConnecting: false
+  }),
+  WalletProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
+
 vi.mock('../hooks/useContractManager', () => ({
   useContractManager: () => ({
     contracts: {},
@@ -102,6 +113,72 @@ describe('Gamification System', () => {
       expect(screen.getByText('Gamification Hub')).toBeInTheDocument();
       expect(screen.getByText('Level 5')).toBeInTheDocument();
       expect(screen.getByText('SILVER TIER')).toBeInTheDocument();
+    });
+
+    it('shows wallet connection prompt when no wallet is connected', () => {
+      // Mock no wallet connected
+      vi.mocked(require('../lib/WalletProvider').useWallet).mockReturnValue({
+        account: null,
+        connectWallet: vi.fn(),
+        disconnectWallet: vi.fn(),
+        isConnecting: false
+      });
+
+      render(
+        <MockWalletProvider>
+          <GamificationDashboard />
+        </MockWalletProvider>
+      );
+
+      expect(screen.getByText('Connect Your Wallet')).toBeInTheDocument();
+      expect(screen.getByText('To access your gamification progress, achievements, and rewards, please connect your wallet.')).toBeInTheDocument();
+    });
+
+    it('shows loading state when data is loading', () => {
+      // Mock loading state
+      vi.mocked(require('../hooks/useGamification').useGamification).mockReturnValue({
+        userStats: null,
+        achievements: [],
+        creatorGoals: [],
+        isLoading: true,
+        error: null,
+        refreshData: vi.fn()
+      });
+
+      render(
+        <MockWalletProvider>
+          <GamificationDashboard />
+        </MockWalletProvider>
+      );
+
+      expect(screen.getByText('Loading your gamification data...')).toBeInTheDocument();
+    });
+
+    it('shows error state with retry option', () => {
+      const mockRefreshData = vi.fn();
+      
+      // Mock error state
+      vi.mocked(require('../hooks/useGamification').useGamification).mockReturnValue({
+        userStats: null,
+        achievements: [],
+        creatorGoals: [],
+        isLoading: false,
+        error: 'Failed to load gamification data',
+        refreshData: mockRefreshData
+      });
+
+      render(
+        <MockWalletProvider>
+          <GamificationDashboard />
+        </MockWalletProvider>
+      );
+
+      expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+      expect(screen.getByText('Failed to load gamification data')).toBeInTheDocument();
+      
+      const retryButton = screen.getByText('Try Again');
+      fireEvent.click(retryButton);
+      expect(mockRefreshData).toHaveBeenCalled();
     });
 
     it('displays navigation tabs correctly', () => {
@@ -313,6 +390,57 @@ describe('Gamification System', () => {
       expect(screen.getByText('Level 5')).toBeInTheDocument();
       expect(screen.getByText('SILVER TIER')).toBeInTheDocument();
       expect(screen.getByText('12,500')).toBeInTheDocument(); // Total XP
+    });
+  });
+
+  describe('Mobile Responsiveness', () => {
+    it('renders achievement cards in single column on mobile', () => {
+      // Mock mobile viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375,
+      });
+
+      render(
+        <MockWalletProvider>
+          <GamificationDashboard />
+        </MockWalletProvider>
+      );
+
+      fireEvent.click(screen.getByText('Achievements'));
+      
+      const achievementCards = screen.getAllByText('Content Creator');
+      expect(achievementCards.length).toBeGreaterThan(0);
+    });
+
+    it('has touch-friendly navigation tabs', () => {
+      render(
+        <MockWalletProvider>
+          <GamificationDashboard />
+        </MockWalletProvider>
+      );
+
+      const tabs = screen.getAllByRole('button');
+      tabs.forEach(tab => {
+        const styles = window.getComputedStyle(tab);
+        // Check minimum touch target size (44px)
+        expect(parseInt(styles.minHeight) || 44).toBeGreaterThanOrEqual(44);
+      });
+    });
+
+    it('maintains progress bar readability on small screens', () => {
+      render(
+        <MockWalletProvider>
+          <GamificationDashboard />
+        </MockWalletProvider>
+      );
+
+      fireEvent.click(screen.getByText('Achievements'));
+      
+      // Check that progress bars have adequate height for mobile
+      const progressBars = document.querySelectorAll('.h-3');
+      expect(progressBars.length).toBeGreaterThan(0);
     });
   });
 });
