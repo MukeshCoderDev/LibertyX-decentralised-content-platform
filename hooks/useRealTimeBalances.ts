@@ -43,18 +43,22 @@ export const useRealTimeBalances = (): RealTimeBalancesHook => {
       const newBalances: TokenBalance[] = [];
 
       // Get native token balance (ETH, MATIC, BNB, etc.)
-      const nativeBalance = await provider.getBalance(account);
-      const nativeSymbol = getNativeTokenSymbol(chainId);
-      
-      newBalances.push({
-        token: 'native',
-        symbol: nativeSymbol,
-        balance: ethers.formatEther(nativeBalance),
-        decimals: 18
-      });
+      try {
+        const nativeBalance = await provider.getBalance(account);
+        const nativeSymbol = getNativeTokenSymbol(chainId);
+        
+        newBalances.push({
+          token: 'native',
+          symbol: nativeSymbol,
+          balance: ethers.formatEther(nativeBalance),
+          decimals: 18
+        });
+      } catch (err) {
+        console.warn('Failed to fetch native balance:', err);
+      }
 
-      // Get LIB token balance
-      if (contracts.libertyToken) {
+      // Get LIB token balance - make it more resilient
+      if (contracts?.libertyToken) {
         try {
           const libBalance = await contracts.libertyToken.balanceOf(account);
           const libDecimals = await contracts.libertyToken.decimals();
@@ -68,6 +72,14 @@ export const useRealTimeBalances = (): RealTimeBalancesHook => {
         } catch (err) {
           console.warn('Failed to fetch LIB balance:', err);
         }
+      } else {
+        // Add a placeholder LIB balance if contract not available
+        newBalances.push({
+          token: 'LIB',
+          symbol: 'LIB',
+          balance: '0',
+          decimals: 18
+        });
       }
 
       // Get other supported token balances based on network
@@ -133,18 +145,30 @@ export const useRealTimeBalances = (): RealTimeBalancesHook => {
       }
     };
 
-    // Subscribe to custom events from blockchain events hook
-    window.addEventListener('tokenTransfer', handleTokenTransfer);
+    // Subscribe to custom events from blockchain events hook - make it optional
+    try {
+      if (subscribeToEvent && typeof subscribeToEvent === 'function') {
+        // Try to subscribe to blockchain events if available
+        subscribeToEvent('libertyToken', 'Transfer', handleTokenTransfer);
+      }
+      window.addEventListener('tokenTransfer', handleTokenTransfer);
+    } catch (err) {
+      console.warn('Failed to set up event listeners:', err);
+    }
     
     // Set up periodic balance refresh (every 2 minutes instead of 30 seconds)
     const intervalId = setInterval(refreshBalances, 120000);
 
     return () => {
-      window.removeEventListener('tokenTransfer', handleTokenTransfer);
+      try {
+        window.removeEventListener('tokenTransfer', handleTokenTransfer);
+      } catch (err) {
+        console.warn('Failed to remove event listener:', err);
+      }
       clearInterval(intervalId);
       clearTimeout(refreshTimeout);
     };
-  }, [account, refreshBalances]);
+  }, [account, refreshBalances, subscribeToEvent]);
 
   // Initial balance fetch
   useEffect(() => {

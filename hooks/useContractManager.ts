@@ -26,6 +26,7 @@ interface ContractManagerHook {
   isHealthy: boolean;
   currentChainId: number | null;
   manager: ContractManager | null;
+  contracts: any; // Add contracts property
 }
 
 export const useContractManager = (): ContractManagerHook => {
@@ -46,7 +47,8 @@ export const useContractManager = (): ContractManagerHook => {
       healthReport: null,
       isHealthy: false,
       currentChainId: null,
-      manager: null
+      manager: null,
+      contracts: null
     };
   }
 
@@ -156,6 +158,7 @@ export const useContractManager = (): ContractManagerHook => {
     healthReport,
     isHealthy,
     currentChainId: chainId,
-    manager: contractManager
+    manager: contractManager,
+    contracts: contractManager?.contracts || null
   };
 };
