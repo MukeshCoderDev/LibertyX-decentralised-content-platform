@@ -547,7 +547,13 @@ export const getTokenConfig = (symbol: string): TokenConfig | undefined => {
 
 export const formatTokenAmount = (amount: string, decimals: number, symbol: string): string => {
   const value = parseFloat(amount) / Math.pow(10, decimals);
-    // Format based on token value
+  
+  // Handle zero or very small values properly
+  if (value === 0) {
+    return `0.00 ${symbol}`;
+  }
+  
+  // Format based on token value
   if (value >= 1000000) {
     return `${(value / 1000000).toFixed(2)}M ${symbol}`;
   } else if (value >= 1000) {
@@ -556,8 +562,11 @@ export const formatTokenAmount = (amount: string, decimals: number, symbol: stri
     return `${value.toFixed(4)} ${symbol}`;
   } else if (value >= 0.0001) {
     return `${value.toFixed(6)} ${symbol}`;
+  } else if (value > 0) {
+    // For very small values, show more decimal places instead of scientific notation
+    return `${value.toFixed(8)} ${symbol}`;
   } else {
-    return `${value.toExponential(2)} ${symbol}`;
+    return `0.00 ${symbol}`;
   }
 };
 

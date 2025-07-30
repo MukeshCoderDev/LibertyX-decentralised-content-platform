@@ -60,33 +60,47 @@ export const useRevenueSplitter = () => {
       if (!contractManager || !chainId) {
         console.warn('Contract manager not available, returning mock data');
         
-        // Return mock data with some balances for testing
+        // Return mock data with zero balances for new creators
         const mockAvailableBalance: TokenBalance[] = [
           {
-            amount: '1000000000000000000', // 1 ETH in wei
+            amount: '0', // 0 ETH
             token: 'ETH',
             decimals: 18,
             symbol: 'ETH'
           },
           {
-            amount: '5000000000000000000000', // 5000 LIB tokens
+            amount: '0', // 0 LIB tokens
             token: 'LIB',
             decimals: 18,
             symbol: 'LIB',
             icon: '🗽'
+          }
+        ];
+
+        // Add some sample transactions for demo purposes
+        const mockRecentSplits = [
+          {
+            txHash: '0x1234567890abcdef1234567890abcdef12345678',
+            payer: '0xabcdef1234567890abcdef1234567890abcdef12',
+            creatorShare: '10000000000000000', // 0.01 ETH
+            platformShare: '1000000000000000', // 0.001 ETH
+            timestamp: Date.now() - 86400000, // 1 day ago
+            contentId: 'sample-content-1'
           },
           {
-            amount: '100000000', // 100 USDC
-            token: 'USDC',
-            decimals: 6,
-            symbol: 'USDC'
+            txHash: '0xfedcba0987654321fedcba0987654321fedcba09',
+            payer: '0x1234567890abcdef1234567890abcdef12345678',
+            creatorShare: '25000000000000000', // 0.025 ETH
+            platformShare: '2500000000000000', // 0.0025 ETH
+            timestamp: Date.now() - 172800000, // 2 days ago
+            contentId: 'sample-content-2'
           }
         ];
 
         return {
           totalEarnings: mockAvailableBalance,
           availableBalance: mockAvailableBalance,
-          recentSplits: []
+          recentSplits: mockRecentSplits
         };
       }
 
