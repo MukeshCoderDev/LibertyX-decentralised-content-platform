@@ -6,6 +6,8 @@ import {
   VideoErrorClass,
   RecurringPattern
 } from '../types/promotional-video';
+import { arweaveService } from './arweaveService';
+import { ContentMetadata } from './arweaveConfig';
 
 // Mock storage for development - in production this would connect to a real database
 class MockPromotionalVideoService implements PromotionalVideoService {
@@ -95,40 +97,105 @@ class MockPromotionalVideoService implements PromotionalVideoService {
     // Validate file
     this.validateVideoFile(file);
     
-    // In production, this would upload to cloud storage
-    const videoUrl = URL.createObjectURL(file);
-    const thumbnailUrl = await this.generateThumbnail(file);
-    
-    const video: PromotionalVideo = {
-      id: `video_${this.nextId++}`,
-      title: metadata.title,
-      description: metadata.description,
-      videoUrl,
-      thumbnailUrl,
-      fileSize: file.size,
-      duration: await this.getVideoDuration(file),
-      format: this.getVideoFormat(file),
-      isActive: true,
-      priority: metadata.priority || 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      schedule: metadata.schedule,
-      analytics: {
-        impressions: 0,
-        completionRate: 0,
-        clickThroughRate: 0,
-        averageViewTime: 0,
-        deviceBreakdown: {
-          desktop: 0,
-          mobile: 0,
-          tablet: 0
-        },
-        performanceScore: 0
-      }
-    };
+    try {
+      // Upload to Arweave for permanent Web3 storage
+      console.log('Uploading promotional video to Arweave...');
+      
+      const arweaveMetadata: Partial<ContentMetadata> = {
+        title: metadata.title,
+        description: metadata.description,
+        contentType: file.type,
+        accessLevel: 'public', // Promotional videos are always public
+        tags: ['promotional', 'advertisement', 'libertyX'],
+      };
 
-    this.videos.push(video);
-    return video;
+      // Upload video to Arweave with progress tracking
+      const uploadResult = await arweaveService.uploadWithBrowserWallet(
+        file,
+        arweaveMetadata,
+        (progress) => {
+          console.log(`Upload progress: ${progress.percentage}%`);
+        }
+      );
+
+      // Generate Arweave URL
+      const videoUrl = arweaveService.getContentUrl(uploadResult.transactionId);
+      
+      // Generate thumbnail (still local for now, could also be uploaded to Arweave)
+      const thumbnailUrl = await this.generateThumbnail(file);
+      
+      const video: PromotionalVideo = {
+        id: uploadResult.transactionId, // Use Arweave transaction ID as video ID
+        title: metadata.title,
+        description: metadata.description,
+        videoUrl,
+        thumbnailUrl,
+        fileSize: file.size,
+        duration: await this.getVideoDuration(file),
+        format: this.getVideoFormat(file),
+        isActive: true,
+        priority: metadata.priority || 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        schedule: metadata.schedule,
+        analytics: {
+          impressions: 0,
+          completionRate: 0,
+          clickThroughRate: 0,
+          averageViewTime: 0,
+          deviceBreakdown: {
+            desktop: 0,
+            mobile: 0,
+            tablet: 0
+          },
+          performanceScore: 0
+        }
+      };
+
+      this.videos.push(video);
+      
+      console.log('✅ Promotional video uploaded to Arweave:', uploadResult.transactionId);
+      return video;
+      
+    } catch (error) {
+      console.error('❌ Failed to upload promotional video to Arweave:', error);
+      
+      // Fallback to local storage for development
+      console.log('Falling back to local storage...');
+      const videoUrl = URL.createObjectURL(file);
+      const thumbnailUrl = await this.generateThumbnail(file);
+      
+      const video: PromotionalVideo = {
+        id: `video_${this.nextId++}`,
+        title: metadata.title,
+        description: metadata.description,
+        videoUrl,
+        thumbnailUrl,
+        fileSize: file.size,
+        duration: await this.getVideoDuration(file),
+        format: this.getVideoFormat(file),
+        isActive: true,
+        priority: metadata.priority || 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        schedule: metadata.schedule,
+        analytics: {
+          impressions: 0,
+          completionRate: 0,
+          clickThroughRate: 0,
+          averageViewTime: 0,
+          deviceBreakdown: {
+            desktop: 0,
+            mobile: 0,
+            tablet: 0
+          },
+          performanceScore: 0
+        }
+      };
+
+      this.videos.push(video);
+      return video;
+    }
   }
 
   async updateVideo(id: string, updates: Partial<PromotionalVideo>): Promise<PromotionalVideo> {
