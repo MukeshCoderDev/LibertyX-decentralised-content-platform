@@ -60,6 +60,8 @@ const PromotionalVideoBackground: React.FC<PromotionalVideoBackgroundProps> = ({
       setIsLoading(true);
       setHasError(false);
       
+      console.log('🎬 Loading promotional video...');
+      
       // Set timeout for video loading
       timeoutRef.current = setTimeout(() => {
         handleVideoError(new Error('Video loading timeout'));
@@ -71,7 +73,10 @@ const PromotionalVideoBackground: React.FC<PromotionalVideoBackgroundProps> = ({
         clearTimeout(timeoutRef.current);
       }
 
+      console.log('🎬 Promotional video result:', video);
+
       if (video) {
+        console.log('✅ Loading video:', video.title, video.videoUrl);
         setCurrentVideo(video);
         onVideoLoad?.(video);
         
@@ -79,9 +84,11 @@ const PromotionalVideoBackground: React.FC<PromotionalVideoBackgroundProps> = ({
         trackImpression(video.id);
       } else {
         // No active videos, use fallback
+        console.warn('❌ No active promotional videos available');
         handleVideoError(new Error('No active promotional videos available'));
       }
     } catch (error) {
+      console.error('❌ Error loading promotional video:', error);
       handleVideoError(error as Error);
     } finally {
       setIsLoading(false);
@@ -194,7 +201,10 @@ const PromotionalVideoBackground: React.FC<PromotionalVideoBackgroundProps> = ({
   };
 
   const getOptimizedVideoUrl = (video: PromotionalVideo): string => {
-    return performanceService.getOptimizedVideoUrl(video.id, deviceType);
+    // For now, return the actual video URL directly
+    // In production, this would go through performance optimization
+    console.log('🎬 Using video URL:', video.videoUrl);
+    return video.videoUrl;
   };
 
   // Render fallback content based on fallback level

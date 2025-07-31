@@ -16,6 +16,7 @@ import { RealTimeDataSync } from './components/RealTimeDataSync'; // Import real
 import ErrorBoundary from './components/ErrorBoundary'; // Import error boundary
 import { SocialTestPage } from './components/SocialTestPage'; // Import social test page
 import { GamificationDashboard } from './components/GamificationDashboard'; // Import gamification dashboard
+import AdminPanel from './components/admin/AdminPanel'; // Import admin panel for video management
 // Temporarily commented out to fix import issues
 // import { NotificationProvider } from './components/NotificationSystem'; // Import notification system
 
@@ -78,6 +79,8 @@ const App: React.FC = () => {
           return <SocialTestPage />;
         case Page.Gamification: // New case for Gamification
           return <GamificationDashboard />;
+        case Page.Admin: // New case for Admin Panel
+          return <AdminPanel />;
         default:
           return <LandingPage onNavigate={navigate} />;
       }

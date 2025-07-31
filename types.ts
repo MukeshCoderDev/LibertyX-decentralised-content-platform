@@ -9,6 +9,7 @@ export enum Page {
   Governance = 'GOVERNANCE', // Add governance page type
   SocialTest = 'SOCIAL_TEST', // Add social test page
   Gamification = 'GAMIFICATION', // Add gamification page type
+  Admin = 'ADMIN', // Add admin page for video management
 }
 
 export interface NavigationProps {

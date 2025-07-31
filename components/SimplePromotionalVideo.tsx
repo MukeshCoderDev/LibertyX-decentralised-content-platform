@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { getCurrentPremiumVideoUrl, INVESTOR_HOOK } from '../lib/premiumVideoConfig';
 
 // Simple promotional video component without external dependencies
 const SimplePromotionalVideo: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [showHook, setShowHook] = useState(false);
 
   useEffect(() => {
     // Simulate loading
@@ -11,7 +13,16 @@ const SimplePromotionalVideo: React.FC = () => {
       setIsLoading(false);
     }, 1000);
 
-    return () => clearTimeout(timer);
+    // Show investor hook after 2 seconds, hide after 1.5 seconds
+    const hookTimer = setTimeout(() => {
+      setShowHook(true);
+      setTimeout(() => setShowHook(false), 1500);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(hookTimer);
+    };
   }, []);
 
   const handleVideoError = () => {
@@ -73,7 +84,7 @@ const SimplePromotionalVideo: React.FC = () => {
           onLoadedData={handleVideoLoad}
           poster="https://picsum.photos/1920/1080?blur=5"
         >
-          <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" type="video/mp4" />
+          <source src={getCurrentPremiumVideoUrl()} type="video/mp4" />
         </video>
       )}
       
@@ -101,6 +112,38 @@ const SimplePromotionalVideo: React.FC = () => {
         backgroundColor: '#111827',
         opacity: 0.7
       }} />
+      
+      {/* Investor Hook Overlay */}
+      {showHook && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 5,
+          textAlign: 'center',
+          animation: 'fadeInOut 1.5s ease-in-out'
+        }}>
+          <div style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: '20px 30px',
+            borderRadius: '12px',
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <p style={{
+              color: 'white',
+              fontSize: '1.2rem',
+              fontFamily: 'satoshi',
+              fontWeight: 600,
+              margin: 0,
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)'
+            }}>
+              Unlock <span style={{ color: '#007bff', fontWeight: 700 }}>90%</span> earnings. No bans. Own your pleasure—on-chain.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -239,45 +239,64 @@ class MockPromotionalVideoService implements PromotionalVideoService {
     return file.type === 'video/webm' ? 'webm' : 'mp4';
   }
 
-  // Development helper - add sample videos
+  // Development helper - add sample videos (COPYRIGHT SAFE)
   async addSampleVideos(): Promise<void> {
     const sampleVideos: Omit<PromotionalVideo, 'id' | 'createdAt' | 'updatedAt'>[] = [
       {
-        title: "LibertyX Platform Overview",
-        description: "Showcase the main features and benefits of the LibertyX platform",
-        videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-        thumbnailUrl: "https://picsum.photos/1920/1080?random=1",
+        title: "💰 Creator Promo - @SexyMia",
+        description: "Premium creator advertisement - Paid 0.25 ETH/week",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        thumbnailUrl: "https://picsum.photos/1920/1080?random=1&blur=2",
         fileSize: 15728640, // ~15MB
         duration: 60,
         format: 'mp4',
         isActive: true,
         priority: 10,
         analytics: {
-          impressions: 0,
-          completionRate: 0,
-          clickThroughRate: 0,
-          averageViewTime: 0,
-          deviceBreakdown: { desktop: 0, mobile: 0, tablet: 0 },
-          performanceScore: 0
+          impressions: 1250,
+          completionRate: 0.85,
+          clickThroughRate: 0.12,
+          averageViewTime: 45,
+          deviceBreakdown: { desktop: 750, mobile: 400, tablet: 100 },
+          performanceScore: 92
         }
       },
       {
-        title: "Creator Success Stories",
-        description: "Highlight successful creators on the platform",
-        videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-        thumbnailUrl: "https://picsum.photos/1920/1080?random=2",
+        title: "🚀 Web3 Wallet - MetaMask Partnership",
+        description: "Sponsored content - Paid 0.4 ETH/week",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        thumbnailUrl: "https://picsum.photos/1920/1080?random=2&blur=2",
         fileSize: 20971520, // ~20MB
         duration: 45,
         format: 'mp4',
-        isActive: false,
-        priority: 5,
+        isActive: true,
+        priority: 8,
         analytics: {
-          impressions: 0,
-          completionRate: 0,
-          clickThroughRate: 0,
-          averageViewTime: 0,
-          deviceBreakdown: { desktop: 0, mobile: 0, tablet: 0 },
-          performanceScore: 0
+          impressions: 980,
+          completionRate: 0.78,
+          clickThroughRate: 0.09,
+          averageViewTime: 35,
+          deviceBreakdown: { desktop: 600, mobile: 280, tablet: 100 },
+          performanceScore: 87
+        }
+      },
+      {
+        title: "🎬 Creator Spotlight - @LunaLove",
+        description: "Featured creator promotion - Paid 0.2 ETH/week",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+        thumbnailUrl: "https://picsum.photos/1920/1080?random=3&blur=2",
+        fileSize: 18874368, // ~18MB
+        duration: 50,
+        format: 'mp4',
+        isActive: true,
+        priority: 7,
+        analytics: {
+          impressions: 720,
+          completionRate: 0.82,
+          clickThroughRate: 0.15,
+          averageViewTime: 41,
+          deviceBreakdown: { desktop: 420, mobile: 250, tablet: 50 },
+          performanceScore: 89
         }
       }
     ];
@@ -303,10 +322,9 @@ class MockPromotionalVideoService implements PromotionalVideoService {
 // Export singleton instance
 export const promotionalVideoService = new MockPromotionalVideoService();
 
-// Initialize with sample data in development
-if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
-  promotionalVideoService.addSampleVideos();
-} else if (typeof window !== 'undefined') {
-  // In browser environment, always add sample data for demo
-  promotionalVideoService.addSampleVideos();
-}
+// Initialize with sample data immediately
+promotionalVideoService.addSampleVideos().then(() => {
+  console.log('✅ Promotional videos loaded successfully');
+}).catch(error => {
+  console.error('❌ Failed to load promotional videos:', error);
+});
