@@ -2,12 +2,13 @@
  * @jest-environment jsdom
  */
 
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { promotionalVideoService } from '../lib/promotionalVideoService';
 import { VideoMetadata } from '../types/promotional-video';
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
-global.URL.createObjectURL = jest.fn(() => 'mock-url');
-global.URL.revokeObjectURL = jest.fn();
+global.URL.createObjectURL = vi.fn(() => 'mock-url');
+global.URL.revokeObjectURL = vi.fn();
 
 // Mock HTMLVideoElement
 Object.defineProperty(HTMLVideoElement.prototype, 'duration', {
@@ -27,7 +28,7 @@ Object.defineProperty(HTMLVideoElement.prototype, 'videoHeight', {
 
 // Mock canvas context
 const mockContext = {
-  drawImage: jest.fn(),
+  drawImage: vi.fn(),
 };
 
 Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {

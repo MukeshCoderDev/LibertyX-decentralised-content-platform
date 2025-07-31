@@ -1,6 +1,6 @@
 import { getCurrentEnvironment } from '../config/environments';
 import { monitoring } from './monitoring';
-import { errorTracking } from './errorTracking';
+import { errorTracking } from './errorTracking.tsx';
 
 export interface BackupData {
   id: string;

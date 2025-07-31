@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 
+import { describe, it, expect, beforeEach } from 'vitest';
 import { analyticsService } from '../lib/analyticsService';
 
 describe('AnalyticsService', () => {

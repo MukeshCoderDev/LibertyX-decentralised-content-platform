@@ -25,7 +25,7 @@ interface APIKey {
 }
 
 export const APIWebhookManager: React.FC = () => {
-  const { account, isConnected } = useWallet();
+  const { isConnected } = useWallet();
   const [activeTab, setActiveTab] = useState<'api' | 'webhooks'>('api');
   const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
   const [webhooks, setWebhooks] = useState<Webhook[]>([]);
@@ -475,11 +475,11 @@ export const APIWebhookManager: React.FC = () => {
                 const data = Object.fromEntries(formData.entries());
                 
                 if (activeTab === 'api') {
-                  data.permissions = Array.from(formData.getAll('permissions'));
-                  createAPIKey(data);
+                  const apiData = { ...data, permissions: Array.from(formData.getAll('permissions')) };
+                  createAPIKey(apiData);
                 } else {
-                  data.events = Array.from(formData.getAll('events'));
-                  createWebhook(data);
+                  const webhookData = { ...data, events: Array.from(formData.getAll('events')) };
+                  createWebhook(webhookData);
                 }
               }}>
                 <div className="space-y-4">

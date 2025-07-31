@@ -11,11 +11,10 @@ interface ReferralStats {
 }
 
 export const CommunityRewards: React.FC = () => {
-  const { account } = useWallet();
+  const { account: _account } = useWallet();
   const { 
     userStats, 
     getReferralLink, 
-    processReferral, 
     isLoading 
   } = useGamification();
 

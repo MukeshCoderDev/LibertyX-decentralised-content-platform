@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { mockCommentService, Comment } from '../lib/mockCommentService';
 import { MessageCircle, ThumbsUp, ThumbsDown, Flag, Reply, Clock, AlertCircle, RefreshCw } from 'lucide-react';
@@ -11,7 +11,7 @@ interface CommentSystemProps {
 
 export const CommentSystem: React.FC<CommentSystemProps> = ({
   contentId,
-  creatorAddress,
+  creatorAddress: _creatorAddress,
   className = ''
 }) => {
   const { account, isConnected } = useWallet();
@@ -200,7 +200,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
       );
 
       // Retry submission
-      const confirmedComment = await mockCommentService.addComment(
+      await mockCommentService.addComment(
         contentId,
         comment.message,
         comment.author,
@@ -242,7 +242,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
     comment, 
     depth = 0 
   }) => {
-    const isRetrying = comment.localId && retryingComments.has(comment.localId);
+    const isRetrying = Boolean(comment.localId && retryingComments.has(comment.localId));
     
     return (
       <div className={`border-l-2 border-gray-200 pl-4 ${depth > 0 ? 'ml-8 mt-4' : 'mb-6'} ${
@@ -480,7 +480,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting || !newComment.trim() || newComment.length > 500}
+                    disabled={isSubmitting || newComment.trim().length === 0 || newComment.length > 500}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors"
                   >
                     {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}

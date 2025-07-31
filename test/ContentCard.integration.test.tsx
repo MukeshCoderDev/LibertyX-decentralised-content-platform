@@ -149,12 +149,16 @@ describe('ContentCard Integration', () => {
 
 describe('ContentCard Balance Validation', () => {
   const mockItem = {
-    id: '1',
+    id: 1,
     thumbnail: 'https://example.com/thumb.jpg',
     creatorName: 'Test Creator',
     creatorAvatar: '',
     creatorAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d4d4',
     likes: 100,
+    isVerified: true,
+    isHD: true,
+    isVR: false,
+    category: 'entertainment',
     price: {
       amount: '25', // 25 LIB - less than user's 50.5 balance
       token: 'LIB',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, RadarChart, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
@@ -51,9 +51,9 @@ const AdvancedAnalytics: React.FC = () => {
     getViewerDemographics, 
     getEngagementMetrics, 
     getContentPerformance,
-    getRevenueForecasting,
-    getAudienceInsights,
-    getTrendingAnalysis
+    getRevenueForecasting
+    // getAudienceInsights,
+    // getTrendingAnalysis
   } = useAnalyticsEngine();
 
   const [demographics, setDemographics] = useState<ViewerDemographics | null>(null);
@@ -309,7 +309,7 @@ const AdvancedAnalytics: React.FC = () => {
             <div className="bg-card p-6 rounded-2xl">
               <h3 className="text-lg font-satoshi font-bold mb-4">Device Usage</h3>
               <div className="space-y-3">
-                {demographics.devices.map((device, index) => (
+                {demographics.devices.map((device) => (
                   <div key={device.device} className="flex items-center justify-between">
                     <span className="text-sm">{device.device}</span>
                     <div className="flex items-center gap-2">
@@ -331,7 +331,7 @@ const AdvancedAnalytics: React.FC = () => {
             <div className="bg-card p-6 rounded-2xl">
               <h3 className="text-lg font-satoshi font-bold mb-4">Wallet Distribution</h3>
               <div className="space-y-3">
-                {demographics.walletTypes.map((wallet, index) => (
+                {demographics.walletTypes.map((wallet) => (
                   <div key={wallet.wallet} className="flex items-center justify-between">
                     <span className="text-sm">{wallet.wallet}</span>
                     <div className="flex items-center gap-2">

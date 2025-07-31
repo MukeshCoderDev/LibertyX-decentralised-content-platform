@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useContractManager } from '../hooks/useContractManager';
-import { MessageSquare, Users, Settings, ExternalLink, Shield, Bot } from 'lucide-react';
+import { MessageSquare, Users, Settings, ExternalLink } from 'lucide-react';
 
 interface CommunityChannel {
   id: string;
@@ -153,17 +153,17 @@ export const CommunityIntegration: React.FC<CommunityIntegrationProps> = ({
     }
   };
 
-  const checkSubscriptionStatus = async (creatorAddress: string): Promise<boolean> => {
+  const checkSubscriptionStatus = async (_creatorAddress: string): Promise<boolean> => {
     // Mock implementation - would check actual subscription
     return true;
   };
 
-  const checkNftOwnership = async (creatorAddress: string, tierRequired?: number): Promise<boolean> => {
+  const checkNftOwnership = async (_creatorAddress: string, _tierRequired?: number): Promise<boolean> => {
     // Mock implementation - would check NFT ownership
     return true;
   };
 
-  const checkPremiumAccess = async (creatorAddress: string): Promise<boolean> => {
+  const checkPremiumAccess = async (_creatorAddress: string): Promise<boolean> => {
     // Mock implementation - would check premium status
     return true;
   };

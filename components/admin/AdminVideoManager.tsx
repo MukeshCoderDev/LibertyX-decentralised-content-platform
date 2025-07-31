@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PromotionalVideo, VideoMetadata } from '../../types/promotional-video';
 import { promotionalVideoService } from '../../lib/promotionalVideoService';
-import { analyticsService } from '../../lib/analyticsService';
+// import { analyticsService } from '../../lib/analyticsService';
 import VideoScheduler from './VideoScheduler';
 
 interface AdminVideoManagerProps {
@@ -93,7 +93,7 @@ const AdminVideoManager: React.FC<AdminVideoManagerProps> = ({ className = '' })
         priority: uploadForm.priority
       };
 
-      const uploadedVideo = await promotionalVideoService.uploadVideo(file, metadata);
+      await promotionalVideoService.uploadVideo(file, metadata);
       
       clearInterval(progressInterval);
       setUploadProgress(100);

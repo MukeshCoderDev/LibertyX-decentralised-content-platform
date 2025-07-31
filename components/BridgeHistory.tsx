@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCrossChainBridge, BridgeTransaction } from '../hooks/useCrossChainBridge';
 import { useWallet } from '../lib/WalletProvider';
 import Button from './ui/Button';
@@ -11,8 +11,7 @@ const BridgeHistory: React.FC = () => {
     supportedChains,
     trackBridgeStatus,
     cancelBridge,
-    retryFailedBridge,
-    isLoading
+    retryFailedBridge
   } = useCrossChainBridge();
 
   const [selectedTab, setSelectedTab] = useState<'active' | 'history'>('active');

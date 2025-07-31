@@ -20,7 +20,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ className = '' 
     topPerformingVideo: null as string | null
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedMetric, setSelectedMetric] = useState<'impressions' | 'completion' | 'clicks' | 'performance'>('impressions');
+  const [selectedMetric, setSelectedMetric] = useState<keyof VideoAnalytics>('impressions');
 
   useEffect(() => {
     loadAnalytics();
@@ -171,7 +171,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ className = '' 
                 {video.title}
               </span>
               <span style={{ color: 'var(--text-secondary, #888)', fontSize: '14px' }}>
-                {typeof video.value === 'number' ? video.value.toFixed(1) : video.value}
+                {typeof video.value === 'number' ? video.value.toFixed(1) : 
+                 typeof video.value === 'object' ? JSON.stringify(video.value) : 
+                 String(video.value)}
               </span>
             </div>
             <div style={{

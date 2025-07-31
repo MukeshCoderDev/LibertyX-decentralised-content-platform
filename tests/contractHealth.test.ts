@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ContractHealthChecker } from '../lib/ContractHealthChecker';
-import { ethers } from 'ethers';
+// import { ethers } from 'ethers';
 
 // Mock ethers provider
 const mockProvider = {

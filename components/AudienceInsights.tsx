@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell
 } from 'recharts';
 import { useWallet } from '../lib/WalletProvider';
 import { useAnalyticsEngine } from '../hooks/useAnalyticsEngine';
-import { useSubscriptionManager } from '../hooks/useSubscriptionManager';
+
 import Button from './ui/Button';
 
 interface SubscriberGrowthData {
@@ -32,7 +32,7 @@ interface EngagementSegments {
 const AudienceInsights: React.FC = () => {
   const { account } = useWallet();
   const { getAudienceInsights, getViewerDemographics } = useAnalyticsEngine();
-  const { getSubscriberStats } = useSubscriptionManager();
+  // const { getSubscriberStats } = useSubscriptionManager();
   
   const [subscriberGrowth, setSubscriberGrowth] = useState<SubscriberGrowthData[]>([]);
   const [retentionData, setRetentionData] = useState<RetentionAnalysis[]>([]);
@@ -287,7 +287,7 @@ const AudienceInsights: React.FC = () => {
         <div className="bg-card p-6 rounded-2xl">
           <h3 className="text-lg font-satoshi font-bold mb-4">Audience Segments</h3>
           <div className="space-y-4">
-            {engagementSegments.map((segment, index) => (
+            {engagementSegments.map((segment) => (
               <div key={segment.segment} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{segment.segment}</span>

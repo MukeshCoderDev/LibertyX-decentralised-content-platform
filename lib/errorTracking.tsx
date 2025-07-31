@@ -451,7 +451,7 @@ export const createErrorBoundary = (componentName: string) => {
 };
 
 // Async operation wrapper with error tracking
-export const withErrorTracking = async <T>(
+export const withErrorTracking = async <T,>(
   operation: () => Promise<T>,
   context: ErrorContext,
   severity: 'low' | 'medium' | 'high' | 'critical' = 'medium'

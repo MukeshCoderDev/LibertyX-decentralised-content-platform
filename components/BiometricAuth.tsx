@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useContractManager } from '../hooks/useContractManager';
-import { Fingerprint, Shield, Smartphone, Key, Lock, CheckCircle, AlertTriangle, Usb } from 'lucide-react';
+import { Fingerprint, Shield, Smartphone, Key, CheckCircle, AlertTriangle, Usb } from 'lucide-react';
 
 interface BiometricCredential {
   id: string;
@@ -111,7 +111,7 @@ export const BiometricAuth: React.FC<BiometricAuthProps> = ({
         const newCredential: BiometricCredential = {
           id: credential.id,
           type,
-          publicKey: arrayBufferToBase64(credential.response.publicKey!),
+          publicKey: arrayBufferToBase64((credential.response as any).publicKey!),
           createdAt: Date.now() / 1000,
           lastUsed: Date.now() / 1000,
           isActive: true
@@ -160,8 +160,8 @@ export const BiometricAuth: React.FC<BiometricAuthProps> = ({
         // Verify authentication with smart contract
         const isValid = await executeTransaction('libertyDAO', 'verifyBiometricAuth', [
           credential.id,
-          arrayBufferToBase64(credential.response.signature),
-          arrayBufferToBase64(credential.response.authenticatorData)
+          arrayBufferToBase64((credential.response as any).signature),
+          arrayBufferToBase64((credential.response as any).authenticatorData)
         ]);
 
         if (isValid) {

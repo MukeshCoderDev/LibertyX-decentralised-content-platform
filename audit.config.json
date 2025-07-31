@@ -1,0 +1,58 @@
+{
+  "phases": {
+    "CODE_QUALITY": true,
+    "SECURITY": true,
+    "TESTING": true,
+    "PERFORMANCE": true,
+    "ACCESSIBILITY": true,
+    "DOCUMENTATION": true
+  },
+  "thresholds": {
+    "codeQuality": {
+      "complexity": 10,
+      "duplicateLines": 5,
+      "maintainabilityIndex": 70
+    },
+    "security": {
+      "vulnerabilityCount": 0,
+      "criticalIssues": 0,
+      "highIssues": 2
+    },
+    "testing": {
+      "coverage": 80,
+      "unitTests": 50,
+      "integrationTests": 10
+    },
+    "performance": {
+      "bundleSize": 5,
+      "loadTime": 3000,
+      "gasLimit": 500000
+    },
+    "accessibility": {
+      "wcagLevel": "AA",
+      "contrastRatio": 4.5,
+      "keyboardNavigation": 100
+    },
+    "documentation": {
+      "apiCoverage": 80,
+      "codeCoverage": 60,
+      "architectureScore": 70
+    }
+  },
+  "outputFormat": "both",
+  "outputPath": "./audit-reports",
+  "parallel": true,
+  "verbose": false,
+  "excludePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    "**/*.test.{ts,tsx,js,jsx}",
+    "**/*.spec.{ts,tsx,js,jsx}"
+  ],
+  "includePatterns": [
+    "src/**/*.{ts,tsx,js,jsx}",
+    "**/*.sol",
+    "**/*.md"
+  ]
+}

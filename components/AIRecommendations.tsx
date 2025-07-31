@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAIRecommendations, ContentRecommendation } from '../hooks/useAIRecommendations';
 import { useWallet } from '../lib/WalletProvider';
-import { NavigationProps } from '../types';
+import { NavigationProps, Page } from '../types';
 import Button from './ui/Button';
 
 interface AIRecommendationsProps extends NavigationProps {
@@ -21,14 +21,14 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
   const { account } = useWallet();
   const {
     recommendations,
-    userPreferences,
+    // userPreferences,
     isLoading,
     error,
     getPersonalizedRecommendations,
     getCategoryRecommendations,
     getCreatorRecommendations,
     trackUserInteraction,
-    updateUserPreferences
+    // updateUserPreferences
   } = useAIRecommendations();
 
   const [selectedCategory, setSelectedCategory] = useState<string>(category || 'all');
@@ -48,14 +48,12 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
     if (!account) return;
 
     try {
-      let recs: ContentRecommendation[] = [];
-      
       if (creatorAddress) {
-        recs = await getCreatorRecommendations(creatorAddress, limit);
+        await getCreatorRecommendations(creatorAddress, limit);
       } else if (selectedCategory && selectedCategory !== 'all') {
-        recs = await getCategoryRecommendations(selectedCategory, limit);
+        await getCategoryRecommendations(selectedCategory, limit);
       } else {
-        recs = await getPersonalizedRecommendations(limit);
+        await getPersonalizedRecommendations(limit);
       }
     } catch (err) {
       console.error('Error loading recommendations:', err);
@@ -96,7 +94,7 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
     });
 
     // Navigate to content
-    onNavigate({ page: 'content', contentId: recommendation.contentId });
+    onNavigate(Page.Watch);
   };
 
   const handleLike = (recommendation: ContentRecommendation, event: React.MouseEvent) => {
@@ -137,7 +135,7 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
         <p className="text-text-secondary mb-4">
           Connect your wallet to get personalized content recommendations based on your interests and viewing history.
         </p>
-        <Button variant="primary" onClick={() => onNavigate({ page: 'wallet' })}>
+        <Button variant="primary" onClick={() => onNavigate(Page.Profile)}>
           Connect Wallet
         </Button>
       </div>
@@ -382,7 +380,7 @@ const AIRecommendations: React.FC<AIRecommendationsProps> = ({
             </Button>
             <Button
               variant="primary"
-              onClick={() => onNavigate({ page: 'explore' })}
+              onClick={() => onNavigate(Page.Explore)}
             >
               Explore Content
             </Button>

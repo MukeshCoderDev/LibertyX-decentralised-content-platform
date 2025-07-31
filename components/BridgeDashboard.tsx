@@ -4,7 +4,7 @@ import { useWallet } from '../lib/WalletProvider';
 import CrossChainBridge from './CrossChainBridge';
 import BridgeHistory from './BridgeHistory';
 import BridgeRecovery from './BridgeRecovery';
-import Button from './ui/Button';
+
 
 interface BridgeStats {
   totalVolume: number;

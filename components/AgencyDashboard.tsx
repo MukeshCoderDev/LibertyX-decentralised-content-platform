@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
-import { useContractManager } from '../hooks/useContractManager';
+// import { useContractManager } from '../hooks/useContractManager';
 
 interface Creator {
   address: string;
@@ -21,11 +21,11 @@ interface BulkOperation {
 
 export const AgencyDashboard: React.FC = () => {
   const { account, isConnected } = useWallet();
-  const { contracts } = useContractManager();
+  // const { contracts } = useContractManager();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
-  const [bulkOperation, setBulkOperation] = useState<BulkOperation | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [, setBulkOperation] = useState<BulkOperation | null>(null);
+  const [, setLoading] = useState(false);
 
   useEffect(() => {
     if (isConnected && account) {
@@ -75,22 +75,22 @@ export const AgencyDashboard: React.FC = () => {
     }
   };
 
-  const executeBulkOperation = async () => {
-    if (!bulkOperation) return;
-    
-    setLoading(true);
-    try {
-      // Implementation would depend on the operation type
-      console.log('Executing bulk operation:', bulkOperation);
-      // Reset after execution
-      setBulkOperation(null);
-      setSelectedCreators([]);
-    } catch (error) {
-      console.error('Error executing bulk operation:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const executeBulkOperation = async () => {
+  //   if (!bulkOperation) return;
+  //   
+  //   setLoading(true);
+  //   try {
+  //     // Implementation would depend on the operation type
+  //     console.log('Executing bulk operation:', bulkOperation);
+  //     // Reset after execution
+  //     setBulkOperation(null);
+  //     setSelectedCreators([]);
+  //   } catch (error) {
+  //     console.error('Error executing bulk operation:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   if (!isConnected) {
     return (

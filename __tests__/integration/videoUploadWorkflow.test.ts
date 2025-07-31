@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 
+import { describe, it, expect, beforeEach } from 'vitest';
 import { promotionalVideoService } from '../../lib/promotionalVideoService';
 import { analyticsService } from '../../lib/analyticsService';
 import { VideoMetadata } from '../../types/promotional-video';

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { WalletProvider, useWallet, WalletType } from '../lib/WalletProvider';
-import React from 'react';
+import * as React from 'react';
 
 // Mock window.ethereum
 const mockEthereum = {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { monitoring } from '../lib/monitoring';
-import { errorTracking } from '../lib/errorTracking';
+import { errorTracking } from '../lib/errorTracking.tsx';
 
 interface PlatformMetrics {
   totalUsers: number;
@@ -39,7 +39,7 @@ interface UserEngagement {
 }
 
 export const AnalyticsDashboard: React.FC = () => {
-  const { account, isConnected } = useWallet();
+  const { isConnected } = useWallet();
   const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);
   const [chainMetrics, setChainMetrics] = useState<ChainMetrics[]>([]);
   const [contentMetrics, setContentMetrics] = useState<ContentMetrics | null>(null);
@@ -388,7 +388,7 @@ export const AnalyticsDashboard: React.FC = () => {
             <div className="bg-gray-800 p-6 rounded-lg">
               <h3 className="text-xl font-bold mb-4">Daily Active Users</h3>
               <div className="h-64 flex items-end space-x-1">
-                {userEngagement.dailyActiveUsers.slice(-14).map((day, index) => (
+                {userEngagement.dailyActiveUsers.slice(-14).map((day) => (
                   <div key={day.date} className="flex-1 flex flex-col items-center">
                     <div
                       className="bg-blue-500 w-full rounded-t"

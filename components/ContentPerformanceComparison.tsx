@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, ScatterChart, Scatter
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { useAnalyticsEngine } from '../hooks/useAnalyticsEngine';
 import { useWallet } from '../lib/WalletProvider';
@@ -38,7 +37,7 @@ interface ABTestResult {
 
 const ContentPerformanceComparison: React.FC = () => {
   const { account } = useWallet();
-  const { getContentPerformance, getABTestingInsights } = useAnalyticsEngine();
+  const { getContentPerformance } = useAnalyticsEngine();
   
   const [contentData, setContentData] = useState<ContentComparison[]>([]);
   const [abTestResults, setAbTestResults] = useState<ABTestResult[]>([]);

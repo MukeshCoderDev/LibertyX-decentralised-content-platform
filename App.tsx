@@ -109,7 +109,7 @@ const App: React.FC = () => {
               onNavigate={navigate}
               currentPage={currentPage}
               onOpenRegistrationModal={() => setShowRegistrationModal(true)} // Pass setter to Header
-              isWatchPage={currentPage === Page.Watch} // Pass watch page detection
+              isWatchPage={false} // Always false in this condition since we exclude Watch page
             />
           )}
           <main>{renderPage()}</main>

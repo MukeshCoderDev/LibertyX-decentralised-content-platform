@@ -11,8 +11,7 @@ import { LockBadge, LockBadgeText } from './ui/LockBadge';
 import { Identicon } from './ui/Identicon';
 import { 
   shouldDisableSubscribeButton, 
-  getInsufficientBalanceTooltip,
-  validateSubscriptionEligibility 
+  getInsufficientBalanceTooltip
 } from '../utils/validation';
 
 interface ContentCardProps extends NavigationProps {
@@ -31,7 +30,7 @@ const ContentCard: React.FC<ContentCardProps> = memo(({ item, onNavigate }) => {
   
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(item.likes);
-  const [commentCount, setCommentCount] = useState(0);
+  const [commentCount, _setCommentCount] = useState(0);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [hasAccess, setHasAccess] = useState(true); // Default to true for public content
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);

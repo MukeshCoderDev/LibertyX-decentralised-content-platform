@@ -1,31 +1,31 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+// import * as React from 'react';
+import { render, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import PromotionalVideoBackground from '../components/PromotionalVideoBackground';
 import { promotionalVideoService } from '../lib/promotionalVideoService';
 import { performanceService } from '../lib/performanceService';
 
 // Mock the services
-jest.mock('../lib/promotionalVideoService');
-jest.mock('../lib/performanceService');
-jest.mock('../lib/analyticsService');
+vi.mock('../lib/promotionalVideoService');
+vi.mock('../lib/performanceService');
+vi.mock('../lib/analyticsService');
 
-const mockPromotionalVideoService = promotionalVideoService as jest.Mocked<typeof promotionalVideoService>;
-const mockPerformanceService = performanceService as jest.Mocked<typeof performanceService>;
+const mockPromotionalVideoService = vi.mocked(promotionalVideoService);
+const mockPerformanceService = vi.mocked(performanceService);
 
 // Mock HTMLVideoElement
 Object.defineProperty(HTMLVideoElement.prototype, 'load', {
   writable: true,
-  value: jest.fn(),
+  value: vi.fn(),
 });
 
 Object.defineProperty(HTMLVideoElement.prototype, 'play', {
   writable: true,
-  value: jest.fn().mockResolvedValue(undefined),
+  value: vi.fn().mockResolvedValue(undefined),
 });
 
 describe('PromotionalVideoBackground', () => {
@@ -53,7 +53,7 @@ describe('PromotionalVideoBackground', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Default mock implementations
     mockPerformanceService.getOptimalVideoSettings.mockReturnValue({
@@ -79,7 +79,7 @@ describe('PromotionalVideoBackground', () => {
   it('should load and display a promotional video', async () => {
     mockPromotionalVideoService.getCurrentVideo.mockResolvedValue(mockVideo);
     
-    const onVideoLoad = jest.fn();
+    const onVideoLoad = vi.fn();
     render(<PromotionalVideoBackground onVideoLoad={onVideoLoad} />);
     
     await waitFor(() => {
@@ -94,7 +94,7 @@ describe('PromotionalVideoBackground', () => {
   it('should handle video loading errors gracefully', async () => {
     mockPromotionalVideoService.getCurrentVideo.mockRejectedValue(new Error('Network error'));
     
-    const onVideoError = jest.fn();
+    const onVideoError = vi.fn();
     render(<PromotionalVideoBackground onVideoError={onVideoError} />);
     
     await waitFor(() => {
@@ -105,7 +105,7 @@ describe('PromotionalVideoBackground', () => {
   it('should use fallback when no videos are available', async () => {
     mockPromotionalVideoService.getCurrentVideo.mockResolvedValue(null);
     
-    const onVideoError = jest.fn();
+    const onVideoError = vi.fn();
     render(<PromotionalVideoBackground onVideoError={onVideoError} />);
     
     await waitFor(() => {
@@ -136,18 +136,18 @@ describe('PromotionalVideoBackground', () => {
   });
 
   it('should handle video timeout', async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     
     // Mock a slow-loading video
     mockPromotionalVideoService.getCurrentVideo.mockImplementation(
       () => new Promise(resolve => setTimeout(() => resolve(mockVideo), 10000))
     );
     
-    const onVideoError = jest.fn();
+    const onVideoError = vi.fn();
     render(<PromotionalVideoBackground onVideoError={onVideoError} />);
     
     // Fast-forward time to trigger timeout
-    jest.advanceTimersByTime(5000);
+    vi.advanceTimersByTime(5000);
     
     await waitFor(() => {
       expect(onVideoError).toHaveBeenCalledWith(
@@ -157,7 +157,7 @@ describe('PromotionalVideoBackground', () => {
       );
     });
     
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('should rotate videos when multiple are available', async () => {
@@ -166,7 +166,7 @@ describe('PromotionalVideoBackground', () => {
     mockPromotionalVideoService.getCurrentVideo.mockResolvedValue(mockVideo);
     mockPromotionalVideoService.getNextVideo.mockResolvedValue(video2);
     
-    const onVideoLoad = jest.fn();
+    const onVideoLoad = vi.fn();
     render(<PromotionalVideoBackground onVideoLoad={onVideoLoad} />);
     
     // Wait for initial video load

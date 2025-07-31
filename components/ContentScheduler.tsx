@@ -21,7 +21,7 @@ interface ContentSchedulerProps {
 }
 
 export const ContentScheduler: React.FC<ContentSchedulerProps> = ({ creatorAddress }) => {
-  const { account, isConnected } = useWallet();
+  const { account: _account, isConnected } = useWallet();
   const [scheduledContent, setScheduledContent] = useState<ScheduledContent[]>([]);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');

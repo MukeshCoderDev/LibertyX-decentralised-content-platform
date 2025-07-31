@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
+import * as React from 'react';
 import PriceDisplay from '../components/PriceDisplay';
 import TokenSelector from '../components/TokenSelector';
 

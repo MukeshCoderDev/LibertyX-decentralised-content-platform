@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ethers } from 'ethers';
+// import { ethers } from 'ethers';
 import ContractManager from '../lib/ContractManager';
 import { getContractInstance } from '../lib/contractUtils';
 import { getChainByChainId } from '../lib/blockchainConfig';
@@ -189,7 +189,7 @@ describe('Smart Contract Integration - Task 3', () => {
     });
 
     it('should handle transaction failures', async () => {
-      const mockError = new Error('Transaction failed: insufficient funds');
+      const mockError = new Error('Transaction failed: insufficient funds') as any;
       mockError.code = -32000;
       
       mockContract.registerCreator.mockRejectedValue(mockError);
@@ -204,7 +204,7 @@ describe('Smart Contract Integration - Task 3', () => {
     });
 
     it('should handle user rejection', async () => {
-      const mockError = new Error('User rejected transaction');
+      const mockError = new Error('User rejected transaction') as any;
       mockError.code = 4001;
       
       mockContract.registerCreator.mockRejectedValue(mockError);
@@ -394,7 +394,7 @@ describe('Smart Contract Integration - Task 3', () => {
     it('should log detailed error information', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
-      const mockError = new Error('Detailed error message');
+      const mockError = new Error('Detailed error message') as any;
       mockError.code = 'CUSTOM_ERROR';
       mockError.reason = 'Custom reason';
       

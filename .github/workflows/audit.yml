@@ -1,0 +1,350 @@
+# LibertyX Comprehensive Audit Workflow
+
+name: 🔍 Comprehensive Audit
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily audit at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      phases:
+        description: 'Comma-separated list of phases to run (CODE_QUALITY,SECURITY,TESTING,PERFORMANCE,ACCESSIBILITY,DOCUMENTATION)'
+        required: false
+        default: 'CODE_QUALITY,SECURITY,TESTING,PERFORMANCE,ACCESSIBILITY,DOCUMENTATION'
+      stop_on_error:
+        description: 'Stop on first error'
+        required: false
+        default: 'false'
+        type: boolean
+      verbose:
+        description: 'Enable verbose output'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  AUDIT_OUTPUT_PATH: './audit-reports'
+
+jobs:
+  audit:
+    name: 🔍 Run Comprehensive Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+      checks: write
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🔧 Setup audit configuration
+        run: |
+          # Create audit configuration if it doesn't exist
+          if [ ! -f "audit.config.json" ]; then
+            npx libertyx-audit init
+          fi
+          
+          # Ensure output directory exists
+          mkdir -p ${{ env.AUDIT_OUTPUT_PATH }}
+
+      - name: 🔍 Run comprehensive audit
+        id: audit
+        run: |
+          set +e  # Don't exit on audit failure
+          
+          # Prepare audit command
+          AUDIT_CMD="npx libertyx-audit run"
+          AUDIT_CMD="$AUDIT_CMD --output ${{ env.AUDIT_OUTPUT_PATH }}"
+          AUDIT_CMD="$AUDIT_CMD --format both"
+          AUDIT_CMD="$AUDIT_CMD --parallel"
+          
+          # Add workflow inputs if provided
+          if [ "${{ github.event.inputs.phases }}" != "" ]; then
+            AUDIT_CMD="$AUDIT_CMD --phases ${{ github.event.inputs.phases }}"
+          fi
+          
+          if [ "${{ github.event.inputs.stop_on_error }}" == "true" ]; then
+            AUDIT_CMD="$AUDIT_CMD --stop-on-error"
+          fi
+          
+          if [ "${{ github.event.inputs.verbose }}" == "true" ]; then
+            AUDIT_CMD="$AUDIT_CMD --verbose"
+          fi
+          
+          # Run audit and capture exit code
+          echo "Running: $AUDIT_CMD"
+          $AUDIT_CMD
+          AUDIT_EXIT_CODE=$?
+          
+          echo "audit_exit_code=$AUDIT_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # Always continue to report generation
+          exit 0
+
+      - name: 📊 Parse audit results
+        id: parse_results
+        run: |
+          # Find the latest JSON report
+          LATEST_REPORT=$(ls -t ${{ env.AUDIT_OUTPUT_PATH }}/audit-report-*.json | head -n1)
+          
+          if [ -f "$LATEST_REPORT" ]; then
+            echo "report_path=$LATEST_REPORT" >> $GITHUB_OUTPUT
+            
+            # Extract key metrics using jq
+            OVERALL_SCORE=$(jq -r '.overallScore // 0' "$LATEST_REPORT")
+            OVERALL_STATUS=$(jq -r '.overallStatus // "unknown"' "$LATEST_REPORT")
+            PRODUCTION_READINESS=$(jq -r '.productionReadiness // "UNKNOWN"' "$LATEST_REPORT")
+            PHASES_PASSED=$(jq -r '.phasesPassed | length' "$LATEST_REPORT")
+            PHASES_TOTAL=$(jq -r '.phasesExecuted | length' "$LATEST_REPORT")
+            ERROR_COUNT=$(jq -r '.errors | length' "$LATEST_REPORT")
+            
+            echo "overall_score=$OVERALL_SCORE" >> $GITHUB_OUTPUT
+            echo "overall_status=$OVERALL_STATUS" >> $GITHUB_OUTPUT
+            echo "production_readiness=$PRODUCTION_READINESS" >> $GITHUB_OUTPUT
+            echo "phases_passed=$PHASES_PASSED" >> $GITHUB_OUTPUT
+            echo "phases_total=$PHASES_TOTAL" >> $GITHUB_OUTPUT
+            echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
+            
+            # Create summary for PR comment
+            cat > audit_summary.md << EOF
+          ## 🔍 Audit Results Summary
+          
+          | Metric | Value |
+          |--------|-------|
+          | **Overall Score** | $OVERALL_SCORE/100 |
+          | **Status** | $OVERALL_STATUS |
+          | **Production Readiness** | $PRODUCTION_READINESS |
+          | **Phases Passed** | $PHASES_PASSED/$PHASES_TOTAL |
+          | **Errors** | $ERROR_COUNT |
+          
+          EOF
+            
+            # Add top recommendations if available
+            RECOMMENDATIONS=$(jq -r '.recommendations[0:3] | map("- " + .) | join("\n")' "$LATEST_REPORT")
+            if [ "$RECOMMENDATIONS" != "null" ] && [ "$RECOMMENDATIONS" != "" ]; then
+              cat >> audit_summary.md << EOF
+          ### 💡 Top Recommendations
+          $RECOMMENDATIONS
+          
+          EOF
+            fi
+            
+            # Add phase details
+            cat >> audit_summary.md << EOF
+          ### 📋 Phase Details
+          EOF
+            
+            jq -r '.phasesExecuted[] as $phase | .reports[$phase] | select(. != null) | "- **\($phase)**: \(.score)/100 (\(.status))"' "$LATEST_REPORT" >> audit_summary.md
+            
+          else
+            echo "No audit report found"
+            echo "overall_score=0" >> $GITHUB_OUTPUT
+            echo "overall_status=failed" >> $GITHUB_OUTPUT
+            echo "production_readiness=NOT_READY" >> $GITHUB_OUTPUT
+            echo "phases_passed=0" >> $GITHUB_OUTPUT
+            echo "phases_total=0" >> $GITHUB_OUTPUT
+            echo "error_count=1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📤 Upload audit reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-reports-${{ github.run_number }}
+          path: ${{ env.AUDIT_OUTPUT_PATH }}
+          retention-days: 30
+
+      - name: 📝 Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read audit summary
+            let summary = '## 🔍 Audit Results\n\nAudit execution failed or no results available.';
+            try {
+              summary = fs.readFileSync('audit_summary.md', 'utf8');
+            } catch (error) {
+              console.log('Could not read audit summary:', error.message);
+            }
+            
+            // Add workflow run link
+            summary += `\n\n[View detailed results](${context.payload.repository.html_url}/actions/runs/${context.runId})`;
+            
+            // Find existing audit comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('🔍 Audit Results')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: summary
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }
+
+      - name: 🔒 Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.AUDIT_OUTPUT_PATH }}/security-results.sarif
+        continue-on-error: true
+
+      - name: ✅ Set status check
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const score = parseInt('${{ steps.parse_results.outputs.overall_score }}') || 0;
+            const status = '${{ steps.parse_results.outputs.overall_status }}';
+            const readiness = '${{ steps.parse_results.outputs.production_readiness }}';
+            
+            let state = 'success';
+            let description = `Score: ${score}/100, Status: ${status}, Readiness: ${readiness}`;
+            
+            if (score < 60 || status === 'failed') {
+              state = 'failure';
+            } else if (score < 80 || status === 'warning') {
+              state = 'pending';
+            }
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: state,
+              target_url: `${context.payload.repository.html_url}/actions/runs/${context.runId}`,
+              description: description,
+              context: 'audit/comprehensive'
+            });
+
+      - name: 🚨 Fail job if critical issues found
+        if: steps.parse_results.outputs.production_readiness == 'NOT_READY' || steps.audit.outputs.audit_exit_code != '0'
+        run: |
+          echo "::error::Audit failed with critical issues or production readiness is NOT_READY"
+          echo "Overall Score: ${{ steps.parse_results.outputs.overall_score }}"
+          echo "Production Readiness: ${{ steps.parse_results.outputs.production_readiness }}"
+          echo "Audit Exit Code: ${{ steps.audit.outputs.audit_exit_code }}"
+          exit 1
+
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔒 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📤 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  performance-budget:
+    name: 📊 Performance Budget Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build project
+        run: npm run build
+
+      - name: 📊 Check bundle size
+        run: |
+          # Simple bundle size check
+          BUNDLE_SIZE=$(du -sb dist | cut -f1)
+          BUNDLE_SIZE_MB=$((BUNDLE_SIZE / 1024 / 1024))
+          
+          echo "Bundle size: ${BUNDLE_SIZE_MB}MB"
+          
+          # Set budget limit (5MB)
+          BUDGET_LIMIT=5
+          
+          if [ $BUNDLE_SIZE_MB -gt $BUDGET_LIMIT ]; then
+            echo "::error::Bundle size (${BUNDLE_SIZE_MB}MB) exceeds budget limit (${BUDGET_LIMIT}MB)"
+            exit 1
+          else
+            echo "::notice::Bundle size (${BUNDLE_SIZE_MB}MB) is within budget limit (${BUDGET_LIMIT}MB)"
+          fi
+
+  notify:
+    name: 📢 Notify Results
+    runs-on: ubuntu-latest
+    needs: [audit, security-scan, performance-budget]
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'push')
+    
+    steps:
+      - name: 📢 Send notification
+        if: needs.audit.result == 'failure'
+        run: |
+          echo "Audit failed - would send notification to team"
+          # In a real implementation, this would send notifications via:
+          # - Slack webhook
+          # - Email
+          # - Discord webhook
+          # - Microsoft Teams
+          # etc.

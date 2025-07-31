@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useContractManager } from '../hooks/useContractManager';
-import { Lock, Unlock, Key, Shield, Download, Upload } from 'lucide-react';
+import { Lock, Unlock, Shield, Upload } from 'lucide-react';
 
 interface EncryptionKey {
   keyId: string;
@@ -42,7 +42,7 @@ export const ContentEncryption: React.FC<ContentEncryptionProps> = ({
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [encryptedContent, setEncryptedContent] = useState<EncryptedContent | null>(null);
-  const [decryptedContent, setDecryptedContent] = useState<Blob | null>(null);
+  const [_decryptedContent, setDecryptedContent] = useState<Blob | null>(null);
   const [encryptionProgress, setEncryptionProgress] = useState(0);
 
   useEffect(() => {
