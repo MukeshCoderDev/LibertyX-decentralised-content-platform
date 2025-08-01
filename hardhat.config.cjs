@@ -12,7 +12,13 @@ module.exports = {
       gasPrice: 20000000000, // 20 gwei
       gas: 6000000,
     },
-    // Add other networks as needed (e.g., mainnet, polygon, etc.)
+    mainnet: {
+      url: process.env.MAINNET_RPC_URL,
+      accounts: process.env.MAINNET_PRIVATE_KEY ? [process.env.MAINNET_PRIVATE_KEY] : [],
+      chainId: 1,
+      gasPrice: 20000000000, // 20 gwei - adjust based on network conditions
+      gas: 6000000,
+    },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY, // Optional: for contract verification
