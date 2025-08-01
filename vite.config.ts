@@ -1,47 +1,48 @@
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
+export default defineConfig({
+  define: {
+    global: 'globalThis',
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '.'),
+      '@artifacts': path.resolve(__dirname, './artifacts'),
+      buffer: 'buffer',
+      process: 'process/browser',
+      util: 'util',
+    }
+  },
+  build: {
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          web3: ['ethers'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    include: ['buffer', 'process'],
+    esbuildOptions: {
+      target: 'es2020',
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
-        'process.env.NODE_ENV': JSON.stringify(mode),
         global: 'globalThis',
       },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-          '@artifacts': path.resolve(__dirname, './artifacts'),
-        }
-      },
-      build: {
-        rollupOptions: {
-          output: {
-            manualChunks: {
-              vendor: ['react', 'react-dom'],
-              web3: ['ethers'],
-            }
-          }
-        },
-        chunkSizeWarningLimit: 1000,
-      },
-      optimizeDeps: {
-        esbuildOptions: {
-          define: {
-            global: 'globalThis',
-          },
-          plugins: [
-            NodeGlobalsPolyfillPlugin({
-              process: true,
-              buffer: true,
-            }),
-            NodeModulesPolyfillPlugin(),
-          ],
-        },
-      },
-    };
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          process: true,
+          buffer: true,
+        }),
+        NodeModulesPolyfillPlugin(),
+      ],
+    },
+  },
 });
