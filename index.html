@@ -4,10 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LibertyX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'background': '#0D0D0F',
+              'primary': '#FF0050',
+              'card': '#1A1A1D',
+              'text-main': '#FFFFFF',
+              'text-secondary': '#A0A0A0',
+            },
+            fontFamily: {
+              'inter': ['Inter', 'sans-serif'],
+              'satoshi': ['Satoshi', 'sans-serif'],
+            },
+            keyframes: {
+              confetti: {
+                '0%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+                '100%': { transform: 'translateY(100px) scale(0)', opacity: '0' },
+              },
+            },
+            animation: {
+              confetti: 'confetti 1s ease-out forwards',
+            },
+          }
+        }
+      }
+    </script>
     <style>
       /* Custom scrollbar for a better dark-mode aesthetic */
       ::-webkit-scrollbar {
