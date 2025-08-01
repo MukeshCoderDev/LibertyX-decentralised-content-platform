@@ -7,8 +7,8 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
         'process.env.NODE_ENV': JSON.stringify(mode),
         global: 'globalThis',
       },
@@ -16,11 +16,6 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
           '@artifacts': path.resolve(__dirname, './artifacts'),
-          // Add Node.js polyfills for browser
-          'http': 'stream-http',
-          'https': 'https-browserify',
-          'os': 'os-browserify/browser',
-          'url': 'url',
         }
       },
       build: {
@@ -28,8 +23,7 @@ export default defineConfig(({ mode }) => {
           output: {
             manualChunks: {
               vendor: ['react', 'react-dom'],
-              web3: ['ethers', '@coinbase/wallet-sdk'],
-              charts: ['recharts'],
+              web3: ['ethers'],
             }
           }
         },

@@ -3,16 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "bin": {
-    "libertyx-audit": "./dist/cli/audit-cli.js"
-  },
+
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.3.7",
