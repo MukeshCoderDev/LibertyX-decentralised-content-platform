@@ -120,7 +120,7 @@ describe('InputValidationAnalyzer', () => {
       expect(result.riskLevel).not.toBe('LOW');
       
       // Check for XSS vulnerability
-      const xssVulns = result.vulnerabilities.filter(v => v.type === 'XSS');
+      const xssVulns = result.vulnerabilities.filter((v: any) => v.type === 'XSS');
       expect(xssVulns.length).toBeGreaterThan(0);
     });
 
@@ -184,7 +184,7 @@ describe('InputValidationAnalyzer', () => {
       expect(result.inputSources.length).toBeGreaterThan(0);
       
       // Check for different input types
-      const inputTypes = result.inputSources.map(i => i.type);
+      const inputTypes = result.inputSources.map((i: any) => i.type);
       expect(inputTypes).toContain('api_request');
       expect(inputTypes).toContain('url_param');
       expect(inputTypes).toContain('query_param');
@@ -214,7 +214,7 @@ describe('InputValidationAnalyzer', () => {
       expect(result.vulnerabilities.length).toBeGreaterThan(0);
       
       // Should detect multiple vulnerability types
-      const vulnTypes = result.vulnerabilities.map(v => v.type);
+      const vulnTypes = result.vulnerabilities.map((v: any) => v.type);
       expect(vulnTypes).toContain('XSS');
       expect(vulnTypes).toContain('SQL_INJECTION');
       expect(vulnTypes).toContain('COMMAND_INJECTION');
@@ -253,8 +253,8 @@ describe('InputValidationAnalyzer', () => {
       const result = await analyzer.validateInputSanitization();
 
       expect(result.recommendations.length).toBeGreaterThan(0);
-      expect(result.recommendations.some(r => r.includes('validation'))).toBe(true);
-      expect(result.recommendations.some(r => r.includes('sanitization'))).toBe(true);
+      expect(result.recommendations.some((r: any) => r.includes('validation'))).toBe(true);
+      expect(result.recommendations.some((r: any) => r.includes('sanitization'))).toBe(true);
     });
   });
 

@@ -161,7 +161,10 @@ describe('Audit Infrastructure', () => {
     it('should merge user config with defaults', () => {
       const userConfig = {
         codeQuality: {
-          maxComplexity: 15
+          enableTypeScriptCheck: true,
+          enableESLint: true,
+          maxComplexity: 15,
+          maxFunctionLength: 20
         },
         testing: {
           minCoverageThreshold: 90

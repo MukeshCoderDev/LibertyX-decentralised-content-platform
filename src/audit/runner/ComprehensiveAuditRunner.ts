@@ -322,14 +322,15 @@ export class ComprehensiveAuditRunner extends EventEmitter {
     
     // Categorize recommendations based on priority and effort
     report.recommendations.forEach(rec => {
-      const lowerRec = rec.toLowerCase();
+      const lowerTitle = rec.title.toLowerCase();
+      const lowerDesc = rec.description.toLowerCase();
       
-      if (lowerRec.includes('critical') || lowerRec.includes('security') || lowerRec.includes('vulnerability')) {
-        immediate.push(rec);
-      } else if (lowerRec.includes('test') || lowerRec.includes('coverage') || lowerRec.includes('fix')) {
-        shortTerm.push(rec);
+      if (rec.priority === 'HIGH' || lowerTitle.includes('critical') || lowerTitle.includes('security') || lowerDesc.includes('vulnerability')) {
+        immediate.push(rec.title);
+      } else if (rec.priority === 'MEDIUM' || lowerTitle.includes('test') || lowerTitle.includes('coverage') || lowerTitle.includes('fix')) {
+        shortTerm.push(rec.title);
       } else {
-        longTerm.push(rec);
+        longTerm.push(rec.title);
       }
     });
     

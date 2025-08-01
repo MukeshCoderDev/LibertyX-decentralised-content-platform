@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { SUPPORTED_CHAINS, getChainByChainId } from '../lib/blockchainConfig';
 import { Chain } from '../lib/web3-types';
 

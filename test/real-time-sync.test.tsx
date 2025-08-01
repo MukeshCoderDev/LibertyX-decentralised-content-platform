@@ -1,4 +1,4 @@
-import * as React from 'react';
+// import * as React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { RealTimeDataSync } from '../components/RealTimeDataSync';
@@ -23,7 +23,7 @@ const mockUseNetworkMonitor = vi.mocked(useNetworkMonitor);
 
 describe('RealTimeDataSync', () => {
   const mockRefreshBalances = vi.fn();
-  const mockRefreshCreatorStats = vi.fn();
+  // const mockRefreshCreatorStats = vi.fn();
 
   beforeEach(() => {
     // Reset all mocks
@@ -35,8 +35,9 @@ describe('RealTimeDataSync', () => {
       isConnected: true,
       chainId: 1,
       provider: null,
+      signer: null,
       balance: [],
-      currentChain: null,
+      currentChain: undefined,
       isConnecting: false,
       connect: vi.fn(),
       disconnect: vi.fn(),
@@ -161,8 +162,9 @@ describe('RealTimeDataSync', () => {
       isConnected: false,
       chainId: null,
       provider: null,
+      signer: null,
       balance: [],
-      currentChain: null,
+      currentChain: undefined,
       isConnecting: false,
       connect: vi.fn(),
       disconnect: vi.fn(),

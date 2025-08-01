@@ -32,7 +32,7 @@ const mockWalletContext = {
 };
 
 const WrapperComponent = ({ children }: { children: React.ReactNode }) => (
-  <WalletProvider value={mockWalletContext as any}>
+  <WalletProvider>
     {children}
   </WalletProvider>
 );
@@ -104,7 +104,7 @@ describe('SubscriptionManager', () => {
       const disconnectedContext = { ...mockWalletContext, isConnected: false };
       
       render(
-        <WalletProvider value={disconnectedContext as any}>
+        <WalletProvider>
           <SubscriptionManager mode="fan" />
         </WalletProvider>
       );

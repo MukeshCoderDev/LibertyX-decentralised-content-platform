@@ -2,11 +2,11 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import ora from 'ora';
+// import ora from 'ora';
 import { promises as fs } from 'fs';
 import { ComprehensiveAuditRunner } from '../audit/runner/ComprehensiveAuditRunner.js';
 import { AuditConfigManager } from '../audit/config/AuditConfigManager.js';
-import { AuditProgress } from '../audit/types/index.js';
+// import { AuditProgress } from '../audit/types/index.js';
 
 const program = new Command();
 let currentSpinner: any = null;
@@ -261,7 +261,7 @@ function handleProgress(progress: AuditProgress): void {
  * Handle phase completion
  */
 function handlePhaseComplete(phase: string, report: any): void {
-  const phaseName = phase.replace('_', ' ').toLowerCase();
+  // const phaseName = phase.replace('_', ' ').toLowerCase();
   const scoreColor = report.score >= 80 ? 'green' : report.score >= 60 ? 'yellow' : 'red';
   console.log(chalk.gray(`  Score: ${chalk[scoreColor](report.score + '/100')}`));
 }

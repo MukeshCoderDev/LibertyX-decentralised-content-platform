@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { SUPPORTED_CHAINS, getChainByChainId } from '../lib/blockchainConfig';
 import { WalletType } from '../lib/WalletProvider';
 import ContractManager from '../lib/ContractManager';

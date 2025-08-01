@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Proposal, GovernanceError, GovernanceErrorType, GOVERNANCE_CONSTANTS } from '../types';
+import { Proposal, GovernanceError, GovernanceErrorType } from '../types';
 
 // Utility function for error handling
 export const createGovernanceError = (

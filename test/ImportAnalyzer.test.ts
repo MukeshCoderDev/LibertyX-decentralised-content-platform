@@ -152,10 +152,8 @@ describe('ImportAnalyzer', () => {
           {
             file: 'test.ts',
             line: 1,
-            column: 1,
-            name: 'unused',
-            source: 'lodash',
-            type: 'named' as const
+            import: 'unused',
+            module: 'lodash'
           }
         ],
         circularDependencies: [

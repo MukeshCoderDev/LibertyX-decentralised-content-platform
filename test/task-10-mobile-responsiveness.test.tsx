@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import * as React from 'react';
+// import * as React from 'react';
 import EarningsDashboard from '../components/EarningsDashboard';
 import PriceDisplay from '../components/PriceDisplay';
 import TokenSelector from '../components/TokenSelector';
@@ -25,7 +25,7 @@ vi.mock('../lib/tokenConfig', () => ({
     { symbol: 'BTC', name: 'Bitcoin', icon: '₿', decimals: 8, category: 'layer1' },
     { symbol: 'LIB', name: 'Liberty Token', icon: '🗽', decimals: 18, category: 'platform' }
   ],
-  getTokensByCategory: (category: string) => [
+  getTokensByCategory: (_category: string) => [
     { symbol: 'ETH', name: 'Ethereum', icon: '⟠', decimals: 18, category: 'layer1' }
   ],
   TOKEN_CATEGORIES: {
@@ -90,7 +90,7 @@ describe('Task 10: Mobile Responsiveness and Advanced UI/UX', () => {
       );
 
       const tokenButton = screen.getByRole('button');
-      const styles = window.getComputedStyle(tokenButton);
+      // const styles = window.getComputedStyle(tokenButton);
       
       // Should have minimum touch target size
       expect(tokenButton).toHaveClass('py-2'); // Ensures minimum height

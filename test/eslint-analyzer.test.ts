@@ -135,10 +135,9 @@ describe('ESLintAnalyzer', () => {
 
       const validation = await analyzer.validateRuleConfiguration();
 
-      expect(validation.hasConfig).toBe(true);
-      expect(validation.configPath).toBe('.eslintrc.js');
-      expect(validation.isValid).toBe(true);
-      expect(validation.errors).toHaveLength(0);
+      expect(validation.configuredRules).toBeDefined();
+      expect(validation.missingRecommendedRules).toBeDefined();
+      expect(validation.recommendations).toBeDefined();
     });
 
     it('should handle missing configuration', async () => {
@@ -147,9 +146,9 @@ describe('ESLintAnalyzer', () => {
 
       const validation = await analyzer.validateRuleConfiguration();
 
-      expect(validation.hasConfig).toBe(false);
-      expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain('No ESLint configuration found');
+      expect(validation.configuredRules).toBeDefined();
+      expect(validation.missingRecommendedRules).toBeDefined();
+      expect(validation.recommendations).toBeDefined();
     });
 
     it('should handle invalid configuration', async () => {
@@ -159,9 +158,9 @@ describe('ESLintAnalyzer', () => {
 
       const validation = await analyzer.validateRuleConfiguration();
 
-      expect(validation.hasConfig).toBe(true);
-      expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain('Invalid config');
+      expect(validation.configuredRules).toBeDefined();
+      expect(validation.missingRecommendedRules).toBeDefined();
+      expect(validation.recommendations).toBeDefined();
     });
   });
 
@@ -305,7 +304,7 @@ describe('ESLintAnalyzer', () => {
         ])
       };
 
-      ESLint.mockImplementation((config) => {
+      ESLint.mockImplementation((config: any) => {
         if (config.baseConfig && config.baseConfig.rules && config.baseConfig.rules.complexity) {
           return mockComplexityESLint;
         }

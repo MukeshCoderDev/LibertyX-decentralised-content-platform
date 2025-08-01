@@ -101,7 +101,7 @@ describe('Smart Contract Integration - Task 3', () => {
     });
 
     it('should reinitialize contract for different chain', () => {
-      const differentChainContract = contractManager.getContract('creatorRegistry', 1);
+      // const differentChainContract = contractManager.getContract('creatorRegistry', 1);
       
       expect(getContractInstance).toHaveBeenCalledWith(
         'creatorRegistry',

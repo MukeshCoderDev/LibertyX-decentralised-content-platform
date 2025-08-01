@@ -417,13 +417,13 @@ describe('Wallet Connection System - Task 1', () => {
   describe('Balance Fetching', () => {
     it('should fetch and display ETH balance', async () => {
       // Mock balance response
-      const mockProvider = {
-        getBalance: vi.fn().mockResolvedValue('1000000000000000000'), // 1 ETH in wei
-        getSigner: vi.fn().mockResolvedValue({
-          getAddress: vi.fn().mockResolvedValue('0x1234567890123456789012345678901234567890')
-        }),
-        getNetwork: vi.fn().mockResolvedValue({ chainId: 1n })
-      };
+      // const mockProvider = {
+      //   getBalance: vi.fn().mockResolvedValue('1000000000000000000'), // 1 ETH in wei
+      //   getSigner: vi.fn().mockResolvedValue({
+      //     getAddress: vi.fn().mockResolvedValue('0x1234567890123456789012345678901234567890')
+      //   }),
+      //   getNetwork: vi.fn().mockResolvedValue({ chainId: 1n })
+      // };
       
       // This would require mocking ethers.BrowserProvider
       // For now, we verify the structure is in place

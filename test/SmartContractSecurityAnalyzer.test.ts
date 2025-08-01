@@ -111,7 +111,7 @@ describe('SmartContractSecurityAnalyzer', () => {
       expect(result.totalVulnerabilities).toBeGreaterThan(0);
       
       // Check for specific vulnerability types
-      const vulnerabilityTypes = result.vulnerabilities.map(v => v.type);
+      const vulnerabilityTypes = result.vulnerabilities.map((v: any) => v.type);
       expect(vulnerabilityTypes).toContain('Unchecked External Call');
       expect(vulnerabilityTypes).toContain('Reentrancy Vulnerability');
       expect(vulnerabilityTypes).toContain('Private Data Exposure');
@@ -162,7 +162,7 @@ describe('SmartContractSecurityAnalyzer', () => {
       expect(result.contractCalls[0].hasErrorHandling).toBe(false);
       
       // Should add vulnerability for missing error handling
-      const errorHandlingVulns = result.vulnerabilities.filter(v => 
+      const errorHandlingVulns = result.vulnerabilities.filter((v: any) => 
         v.type === 'Missing Error Handling'
       );
       expect(errorHandlingVulns.length).toBeGreaterThan(0);

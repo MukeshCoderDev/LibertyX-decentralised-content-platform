@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ContentCard from '../components/ContentCard';
-import { Page } from '../types';
+// import { Page } from '../types';
 
 // Mock the wallet provider
 vi.mock('../lib/WalletProvider', () => ({
@@ -54,7 +54,11 @@ describe('ContentCard Integration', () => {
       symbol: 'LIB'
     },
     accessLevel: 'subscription' as const,
-    nftTierRequired: 2
+    nftTierRequired: 2,
+    isVerified: false,
+    isHD: true,
+    isVR: false,
+    category: 'entertainment'
   };
 
   const mockProps = {

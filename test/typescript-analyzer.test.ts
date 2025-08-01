@@ -71,7 +71,14 @@ describe('TypeScriptAnalyzer', () => {
       vi.mocked(ts.parseJsonConfigFileContent).mockReturnValue({
         options: {},
         fileNames: [],
-        errors: [{ messageText: 'Config error' }]
+        errors: [{ 
+          messageText: 'Config error',
+          category: 1,
+          code: 1001,
+          file: undefined,
+          start: undefined,
+          length: undefined
+        }]
       });
 
       await expect(analyzer.analyzeTypeScript()).rejects.toThrow(AuditError);

@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { ethers } from 'ethers';
 
 // Import the actual components we're testing
@@ -12,23 +12,27 @@ import { GovernanceDashboard } from '../components/GovernanceDashboard';
 import { VotingPowerDisplay } from '../components/VotingPowerDisplay';
 import { StableBalanceDisplay } from '../components/StableBalanceDisplay';
 import { TransactionFeedback } from '../components/TransactionFeedback';
-import { ErrorBoundary } from '../components/ErrorBoundary';
-import { useLibertyDAO } from '../hooks/useLibertyDAO';
-import { useRealTimeBalances } from '../hooks/useRealTimeBalances';
+import ErrorBoundary from '../components/ErrorBoundary';
+// import { useLibertyDAO } from '../hooks/useLibertyDAO';
+// import { useRealTimeBalances } from '../hooks/useRealTimeBalances';
 import { useErrorHandling } from '../hooks/useErrorHandling';
 import { useWallet } from '../lib/WalletProvider';
 
 // Mock the hooks with realistic data
+const mockUseLibertyDAO = vi.fn();
+const mockUseRealTimeBalances = vi.fn();
+const mockUseErrorHandling = vi.fn();
+
 vi.mock('../hooks/useLibertyDAO', () => ({
-  useLibertyDAO: vi.fn(),
+  useLibertyDAO: mockUseLibertyDAO,
 }));
 
 vi.mock('../hooks/useRealTimeBalances', () => ({
-  useRealTimeBalances: vi.fn(),
+  useRealTimeBalances: mockUseRealTimeBalances,
 }));
 
 vi.mock('../hooks/useErrorHandling', () => ({
-  useErrorHandling: vi.fn(),
+  useErrorHandling: mockUseErrorHandling,
 }));
 
 vi.mock('../lib/WalletProvider', () => ({
@@ -97,7 +101,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
     });
 
     it('should render voting power display correctly', () => {
-      render(<VotingPowerDisplay />);
+      render(<VotingPowerDisplay votingPower={null} isLoading={false} />);
       
       // Should show voting power
       expect(screen.getByText(/voting power/i)).toBeInTheDocument();
@@ -118,7 +122,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
         error: null,
       });
 
-      render(<VotingPowerDisplay />);
+      render(<VotingPowerDisplay votingPower={null} isLoading={false} />);
       
       // Should show warning about minimum requirement
       expect(screen.getByText(/minimum.*1,000.*LIB/i)).toBeInTheDocument();
@@ -215,7 +219,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
       const mockTransaction = {
         hash: '0xabcdef1234567890abcdef1234567890abcdef12',
         confirmations: 3,
-        status: 'pending',
+        status: 'pending' as const,
       };
 
       render(<TransactionFeedback transaction={mockTransaction} />);
@@ -241,7 +245,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
         setLoading: vi.fn(),
       });
 
-      render(<TransactionFeedback />);
+      render(<TransactionFeedback transaction={{ status: 'error', error: 'Transaction failed' }} />);
       
       // Should show user-friendly error message
       expect(screen.getByText(/insufficient funds/i)).toBeInTheDocument();
@@ -266,7 +270,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
         setLoading: vi.fn(),
       });
 
-      render(<TransactionFeedback />);
+      render(<TransactionFeedback transaction={{ status: 'error', error: 'Gas estimation failed' }} />);
       
       // Should show gas estimation error
       expect(screen.getByText(/gas estimation/i)).toBeInTheDocument();
@@ -328,7 +332,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
 
       render(
         <div>
-          <VotingPowerDisplay />
+          <VotingPowerDisplay votingPower={null} isLoading={false} />
           <StableBalanceDisplay />
         </div>
       );
@@ -357,7 +361,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
       render(
         <ErrorBoundary>
           <GovernanceDashboard />
-          <TransactionFeedback />
+          <TransactionFeedback transaction={{ status: 'idle' }} />
         </ErrorBoundary>
       );
 
@@ -373,9 +377,9 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
       render(
         <div>
           <GovernanceDashboard />
-          <VotingPowerDisplay />
+          <VotingPowerDisplay votingPower={null} isLoading={false} />
           <StableBalanceDisplay />
-          <TransactionFeedback />
+          <TransactionFeedback transaction={{ status: 'idle' }} />
         </div>
       );
       
@@ -429,7 +433,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
         setLoading: vi.fn(),
       });
 
-      render(<TransactionFeedback />);
+      render(<TransactionFeedback transaction={{ status: 'idle' }} />);
       
       // Should not show private keys, seeds, or sensitive data
       expect(screen.queryByText(/private key/i)).not.toBeInTheDocument();
@@ -443,7 +447,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
         transaction: {
           hash: '<script>alert("xss")</script>',
           confirmations: -1,
-          status: 'pending',
+          status: 'pending' as const,
         },
       };
 
@@ -468,7 +472,7 @@ describe('🚀 BOLD AUDIT: Tasks 11-13 Production Readiness', () => {
     });
 
     it('should support keyboard navigation', () => {
-      render(<VotingPowerDisplay />);
+      render(<VotingPowerDisplay votingPower={null} isLoading={false} />);
       
       // Should have focusable elements
       const focusableElements = screen.getAllByRole('button').concat(

@@ -273,6 +273,21 @@ export interface Recommendation {
   estimatedEffort: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
+// Audit Phase Types
+export type AuditPhase = 'CODE_QUALITY' | 'SECURITY' | 'TESTING' | 'PERFORMANCE' | 'ACCESSIBILITY' | 'DOCUMENTATION';
+
+export interface AuditReport {
+  score: number;
+  status: 'passed' | 'warning' | 'failed';
+  overallScore: number;
+}
+
+export interface AuditError {
+  phase: string;
+  message: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+}
+
 // Comprehensive Audit Report
 export interface ComprehensiveAuditReport {
   timestamp: Date;
@@ -287,10 +302,17 @@ export interface ComprehensiveAuditReport {
   documentationReport: DocumentationReport;
   
   overallScore: number;
+  overallStatus: 'passed' | 'warning' | 'failed';
+  productionReadiness: 'NOT_READY' | 'NEEDS_WORK' | 'READY' | 'PRODUCTION_READY';
   readinessLevel: 'NOT_READY' | 'NEEDS_WORK' | 'READY' | 'PRODUCTION_READY';
   criticalIssues: CriticalIssue[];
   recommendations: Recommendation[];
   nextSteps: string[];
+  
+  // Additional properties for audit runner
+  phasesExecuted: AuditPhase[];
+  reports: Partial<Record<AuditPhase, AuditReport>>;
+  errors: AuditError[];
 }
 
 // Analyzer Interfaces

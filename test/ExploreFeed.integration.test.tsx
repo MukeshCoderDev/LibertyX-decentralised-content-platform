@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ExploreFeed from '../components/ExploreFeed';
-import { Page } from '../types';
+// import { Page } from '../types';
 
 // Mock the mock data
 vi.mock('../lib/mock-data', () => ({
