@@ -1,5 +1,32 @@
 // Core Audit Types and Interfaces
 
+export interface AuditConfig {
+  phases: Record<AuditPhase, boolean>;
+  parallel: boolean;
+  thresholds: {
+    codeQuality: {
+      maintainabilityIndex: number;
+    };
+    security: {
+      criticalIssues: number;
+      highIssues: number;
+    };
+    testing: {
+      coverage: number;
+    };
+    performance: {
+      bundleSize: number;
+      loadTime: number;
+    };
+    accessibility: {
+      wcagLevel: 'A' | 'AA' | 'AAA';
+    };
+    documentation: {
+      architectureScore: number;
+    };
+  };
+}
+
 export interface AuditConfiguration {
   codeQuality: {
     enableTypeScriptCheck: boolean;
@@ -75,6 +102,7 @@ export interface QualityReport {
   lintingIssues: LintingIssue[];
   complexityViolations: ComplexityViolation[];
   unusedImports: UnusedImport[];
+  score: number;
   overallScore: number;
   recommendations: string[];
 }
@@ -117,8 +145,11 @@ export interface SecurityReport {
   inputValidationIssues: ValidationIssue[];
   dependencyVulnerabilities: DependencyVulnerability[];
   privateKeyExposures: PrivateKeyExposure[];
+  vulnerabilities?: Array<{ severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' }>;
+  score: number;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   mitigationSteps: string[];
+  recommendations?: string[];
 }
 
 // Testing Types
@@ -160,6 +191,11 @@ export interface CoverageReport {
   overallCoverage: number;
   uncoveredFiles: string[];
   criticalPathsCovered: boolean;
+  score: number;
+  coverageData: {
+    statements: { percentage: number };
+  };
+  recommendations?: string[];
 }
 
 // Performance Types
@@ -199,6 +235,7 @@ export interface PerformanceReport {
   loadTimes: LoadTimeMetrics;
   gasUsage: GasUsageMetrics;
   memoryUsage: MemoryUsageMetrics;
+  overallScore: number;
   optimizationRecommendations: string[];
 }
 
@@ -239,7 +276,9 @@ export interface AccessibilityReport {
   screenReaderIssues: ScreenReaderIssue[];
   colorContrastFailures: ColorContrastFailure[];
   complianceLevel: 'A' | 'AA' | 'AAA' | 'NON_COMPLIANT';
+  score: number;
   remediationSteps: string[];
+  recommendations?: string[];
 }
 
 // Documentation Types
@@ -250,6 +289,8 @@ export interface DocumentationReport {
   codeCommentCoverage: number;
   missingDocumentation: string[];
   documentationQualityScore: number;
+  score: number;
+  recommendations?: string[];
 }
 
 // Critical Issues and Recommendations
@@ -277,42 +318,44 @@ export interface Recommendation {
 export type AuditPhase = 'CODE_QUALITY' | 'SECURITY' | 'TESTING' | 'PERFORMANCE' | 'ACCESSIBILITY' | 'DOCUMENTATION';
 
 export interface AuditReport {
+  phase: AuditPhase;
+  timestamp: Date;
   score: number;
   status: 'passed' | 'warning' | 'failed';
-  overallScore: number;
+  summary: string;
+  details: any;
+  recommendations: string[];
 }
 
 export interface AuditError {
-  phase: string;
+  phase: AuditPhase;
   message: string;
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  stack?: string;
 }
 
 // Comprehensive Audit Report
 export interface ComprehensiveAuditReport {
   timestamp: Date;
-  projectVersion: string;
-  auditConfiguration: AuditConfiguration;
-  
-  codeQualityReport: QualityReport;
-  securityReport: SecurityReport;
-  coverageReport: CoverageReport;
-  performanceReport: PerformanceReport;
-  accessibilityReport: AccessibilityReport;
-  documentationReport: DocumentationReport;
-  
+  executionTime: number;
   overallScore: number;
   overallStatus: 'passed' | 'warning' | 'failed';
   productionReadiness: 'NOT_READY' | 'NEEDS_WORK' | 'READY' | 'PRODUCTION_READY';
-  readinessLevel: 'NOT_READY' | 'NEEDS_WORK' | 'READY' | 'PRODUCTION_READY';
-  criticalIssues: CriticalIssue[];
-  recommendations: Recommendation[];
-  nextSteps: string[];
-  
-  // Additional properties for audit runner
   phasesExecuted: AuditPhase[];
+  phasesPassed: AuditPhase[];
+  phasesFailed: AuditPhase[];
   reports: Partial<Record<AuditPhase, AuditReport>>;
   errors: AuditError[];
+  recommendations: string[];
+  summary: {
+    totalPhases: number;
+    passedPhases: number;
+    failedPhases: number;
+    errorCount: number;
+    averageScore: number;
+    executionTimeMs: number;
+  };
+  config: AuditConfig;
 }
 
 // Analyzer Interfaces
@@ -361,5 +404,6 @@ export interface DocumentationAuditor {
   checkArchitectureDocumentation(): Promise<boolean>;
   auditDeploymentInstructions(): Promise<boolean>;
   validateCodeComments(): Promise<number>;
+  auditDocumentation(): Promise<DocumentationReport>;
   generateDocumentationReport(): Promise<DocumentationReport>;
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TokenPrice } from '../types';
+// import { TokenPrice } from '../types';
 
 interface CryptoPriceRangeSelectorProps {
   selectedToken: string;

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavigationProps, Page, TokenPrice } from '../types';
 import Button from './ui/Button';
 import Toggle from './ui/Toggle';
-import Modal from './ui/Modal';
-import { useArweave } from '../hooks/useArweave';
-import { ContentMetadata } from '../lib/arweaveConfig';
+// import Modal from './ui/Modal';
+// import { useArweave } from '../hooks/useArweave';
+// import { ContentMetadata } from '../lib/arweaveConfig';
 import CryptoPriceInput from './CryptoPriceInput';
 import { uploadVideo, estimateUploadCost } from '../lib/uploadToArweave';
 import WalletUpload from './WalletUpload';
@@ -41,7 +41,7 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
         walletBalance,
         refreshBalance,
         clearWallet,
-        estimateUploadCost: estimateWalletCost 
+        estimateUploadCost: _estimateWalletCost 
     } = useWallet();
 
     // Remove the old Arweave hook since we're using direct wallet upload
@@ -419,7 +419,7 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
                         <Button 
                             onClick={handleUploadToArweave} 
                             className="mt-8 w-full"
-                            disabled={isUploading || !isWalletLoaded || (uploadCostEstimate && parseFloat(walletBalance!) < parseFloat(uploadCostEstimate))}
+                            disabled={isUploading || !isWalletLoaded || Boolean(uploadCostEstimate && walletBalance && parseFloat(walletBalance) < parseFloat(uploadCostEstimate))}
                         >
                             {isUploading ? 'Uploading with Your Wallet...' : 'Upload to Arweave & Mint Access Pass'}
                         </Button>
@@ -494,7 +494,7 @@ const CreatorUpload: React.FC<NavigationProps> = ({ onNavigate }) => {
                         
                         <div className="flex gap-4">
                             <Button 
-                                onClick={() => onNavigate(Page.CreatorDashboard)} 
+                                onClick={() => onNavigate(Page.Dashboard)} 
                                 className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 hover-lift"
                             >
                                 🎯 View Dashboard

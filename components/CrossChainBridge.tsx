@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useCrossChainBridge, ChainInfo, BridgeFeeEstimate } from '../hooks/useCrossChainBridge';
-import { getAllTokens, formatTokenAmount } from '../lib/tokenConfig';
+// import { getAllTokens, formatTokenAmount } from '../lib/tokenConfig';
 import Button from './ui/Button';
 import TokenSelector from './TokenSelector';
 
@@ -223,7 +223,6 @@ const CrossChainBridge: React.FC = () => {
             <TokenSelector
               selectedToken={formData.token}
               onTokenSelect={(token) => handleInputChange('token', token)}
-              filterTokens={sourceChainInfo?.supportedTokens}
             />
           </div>
 

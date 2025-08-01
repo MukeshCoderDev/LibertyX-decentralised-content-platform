@@ -2,11 +2,11 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-// import ora from 'ora';
+import ora from 'ora';
 import { promises as fs } from 'fs';
 import { ComprehensiveAuditRunner } from '../audit/runner/ComprehensiveAuditRunner.js';
 import { AuditConfigManager } from '../audit/config/AuditConfigManager.js';
-// import { AuditProgress } from '../audit/types/index.js';
+import { AuditProgress } from '../audit/orchestrator/AuditOrchestrator.js';
 
 const program = new Command();
 let currentSpinner: any = null;

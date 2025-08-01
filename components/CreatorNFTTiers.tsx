@@ -21,7 +21,7 @@ const CreatorNFTTiers: React.FC<CreatorNFTTiersProps> = ({
   const [showMintInterface, setShowMintInterface] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [contractAvailable, setContractAvailable] = useState<boolean | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [retryCount, _setRetryCount] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Loading NFT tiers...');
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
@@ -60,28 +60,28 @@ const CreatorNFTTiers: React.FC<CreatorNFTTiersProps> = ({
   }, [contractManager]);
 
   // Retry logic with exponential backoff
-  const retryOperation = useCallback(async (operation: () => Promise<void>, maxRetries: number = 3) => {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        await operation();
-        setRetryCount(0);
-        return;
-      } catch (error: any) {
-        console.error(`Attempt ${attempt} failed:`, error);
+  // const _retryOperation = useCallback(async (operation: () => Promise<void>, maxRetries: number = 3) => {
+  //   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  //     try {
+  //       await operation();
+  //       setRetryCount(0);
+  //       return;
+  //     } catch (error: any) {
+  //       console.error(`Attempt ${attempt} failed:`, error);
         
-        if (attempt === maxRetries) {
-          throw error;
-        }
+  //       if (attempt === maxRetries) {
+  //         throw error;
+  //       }
         
-        setRetryCount(attempt);
-        setLoadingMessage(`Retrying... (${attempt}/${maxRetries})`);
+  //       setRetryCount(attempt);
+  //       setLoadingMessage(`Retrying... (${attempt}/${maxRetries})`);
         
-        // Exponential backoff: 1s, 2s, 4s
-        const delay = Math.pow(2, attempt - 1) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  }, []);
+  //       // Exponential backoff: 1s, 2s, 4s
+  //       const delay = Math.pow(2, attempt - 1) * 1000;
+  //       await new Promise(resolve => setTimeout(resolve, delay));
+  //     }
+  //   }
+  // }, []);
 
   // Load NFT tiers - stable version
   const loadTiers = useCallback(async () => {
@@ -200,7 +200,6 @@ const CreatorNFTTiers: React.FC<CreatorNFTTiersProps> = ({
             <Button
               onClick={loadTiers}
               variant="secondary"
-              size="sm"
               className="ml-4 text-xs"
             >
               Retry

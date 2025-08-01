@@ -5,7 +5,7 @@
  * This is our "bold move" - comprehensive testing to ensure production readiness
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { ethers } from 'ethers';
 import { WalletProvider } from '../lib/WalletProvider';
@@ -15,8 +15,8 @@ import { VotingPowerDisplay } from '../components/VotingPowerDisplay';
 import { RealTimeDataSync } from '../components/RealTimeDataSync';
 import { StableBalanceDisplay } from '../components/StableBalanceDisplay';
 import { TransactionFeedback } from '../components/TransactionFeedback';
-import { NotificationSystem } from '../components/NotificationSystem';
-import { ErrorBoundary } from '../components/ErrorBoundary';
+import { Notification } from '../components/NotificationSystem';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { useLibertyDAO } from '../hooks/useLibertyDAO';
 import { useRealTimeBalances } from '../hooks/useRealTimeBalances';
 import { useErrorHandling } from '../hooks/useErrorHandling';
@@ -57,7 +57,7 @@ vi.mock('../hooks/useErrorHandling');
 
 // Mock WalletProvider properly
 vi.mock('../lib/WalletProvider', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal() as any;
   return {
     ...actual,
     WalletProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -119,7 +119,7 @@ describe('Task 11: DAO Governance Integration - BOLD TESTING', () => {
     it('should display correct voting power based on LIB token holdings', async () => {
       render(
         <WalletProvider>
-          <VotingPowerDisplay />
+          <VotingPowerDisplay votingPower={5000} isLoading={false} />
         </WalletProvider>
       );
 
@@ -141,7 +141,7 @@ describe('Task 11: DAO Governance Integration - BOLD TESTING', () => {
 
       render(
         <WalletProvider>
-          <VotingPowerDisplay />
+          <VotingPowerDisplay votingPower={500} isLoading={false} />
         </WalletProvider>
       );
 
@@ -182,7 +182,7 @@ describe('Task 11: DAO Governance Integration - BOLD TESTING', () => {
 
       render(
         <WalletProvider>
-          <ProposalCreationForm />
+          <ProposalCreationForm votingPower={5000} isLoading={false} onCreateProposal={vi.fn()} />
         </WalletProvider>
       );
 
@@ -433,7 +433,7 @@ describe('Task 13: Comprehensive Error Handling - BOLD TESTING', () => {
     });
 
     it('should handle gas estimation failures with alternatives', async () => {
-      const gasEstimationError = new Error('Gas estimation failed');
+      const gasEstimationError = new Error('Gas estimation failed') as any;
       gasEstimationError.code = 'UNPREDICTABLE_GAS_LIMIT';
 
       (useErrorHandling as any).mockReturnValue({

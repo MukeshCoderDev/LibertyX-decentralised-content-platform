@@ -83,7 +83,7 @@ const NFTMintingInterface: React.FC<NFTMintingInterfaceProps> = ({
 
       const totalCost = ethers.parseEther((parseFloat(selectedTier.priceEth) * mintAmount).toString());
       const gasEstimate = await contract.mint.estimateGas(selectedTier.id, mintAmount, { value: totalCost });
-      const gasPrice = await contractManager.provider?.getFeeData();
+      const gasPrice = await provider?.getFeeData();
       
       if (gasPrice?.gasPrice) {
         const gasCost = gasEstimate * gasPrice.gasPrice;
@@ -115,7 +115,8 @@ const NFTMintingInterface: React.FC<NFTMintingInterfaceProps> = ({
     }
 
     const totalCost = parseFloat(selectedTier.priceEth) * mintAmount;
-    const userBalance = balance ? parseFloat(ethers.formatEther(balance)) : 0;
+    const ethBalance = balance?.find(b => b.symbol === 'ETH');
+    const userBalance = ethBalance ? parseFloat(ethBalance.balance) : 0;
     const estimatedGas = gasEstimate ? parseFloat(gasEstimate) : 0.01; // Fallback estimate
 
     if (userBalance < totalCost + estimatedGas) {
@@ -233,7 +234,6 @@ const NFTMintingInterface: React.FC<NFTMintingInterfaceProps> = ({
           <Button
             onClick={loadTiers}
             variant="secondary"
-            size="sm"
             className="mt-2"
           >
             Retry

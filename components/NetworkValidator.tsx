@@ -52,7 +52,6 @@ const NetworkValidator: React.FC = () => {
               <Button
                 onClick={handleSwitchToSepolia}
                 variant="secondary"
-                size="sm"
               >
                 Switch to Sepolia
               </Button>

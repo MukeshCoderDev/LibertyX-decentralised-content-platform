@@ -33,7 +33,7 @@ interface AlertItem {
 }
 
 export const MonitoringDashboard: React.FC = () => {
-  const { account, isConnected } = useWallet();
+  const { account: _account, isConnected } = useWallet();
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [blockchainMetrics, setBlockchainMetrics] = useState<BlockchainMetrics>({});
   const [alerts, setAlerts] = useState<AlertItem[]>([]);

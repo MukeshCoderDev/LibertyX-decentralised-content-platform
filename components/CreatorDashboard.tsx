@@ -13,7 +13,7 @@ import SupportedTokensDisplay from './SupportedTokensDisplay';
 import AdvancedAnalytics from './AdvancedAnalytics';
 import AudienceInsights from './AudienceInsights';
 
-const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate }) => {
+const CreatorDashboard: React.FC<NavigationProps> = ({ onNavigate: _onNavigate }) => {
     const { account } = useWallet();
     const { getTierStats } = useNFTAccess();
     const [showNFTForm, setShowNFTForm] = useState(false);

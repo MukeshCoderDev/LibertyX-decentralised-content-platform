@@ -54,20 +54,18 @@ export class ComprehensiveAuditRunner extends EventEmitter {
       // Initialize audit orchestrator
       const orchestrator = new AuditOrchestrator();
 
-      // Set up event listeners
-      orchestrator.on('progress', (progress) => {
-        this.emit('progress', progress);
-      });
-
-      orchestrator.on('phaseComplete', (phase, report) => {
-        this.emit('phaseComplete', phase, report);
-        const scoreColor = report.score >= 80 ? '✅' : report.score >= 60 ? '⚠️' : '❌';
-        console.log(`   ${scoreColor} ${phase}: ${report.score}/100`);
-      });
-
       // Run the comprehensive audit
       console.log('🚀 Executing audit phases...\n');
-      const auditReport = await orchestrator.runComprehensiveAudit();
+      const auditReport = await orchestrator.executeAudit({
+        onProgress: (progress) => {
+          this.emit('progress', progress);
+        },
+        onPhaseComplete: (phase, report) => {
+          this.emit('phaseComplete', phase, report);
+          const scoreColor = report.score >= 80 ? '✅' : report.score >= 60 ? '⚠️' : '❌';
+          console.log(`   ${scoreColor} ${phase}: ${report.score}/100`);
+        }
+      });
 
       // Display phase results
       console.log('\n📊 Phase Results:');

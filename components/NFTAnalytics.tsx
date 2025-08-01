@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useContractManager } from '../hooks/useContractManager';
-import { ethers } from 'ethers';
+// import { ethers } from 'ethers';
 
 interface NFTTierStats {
   id: number;
@@ -64,15 +64,15 @@ const NFTAnalytics: React.FC<NFTAnalyticsProps> = ({ creatorAddress }) => {
         const mintFilter = contract.filters.Minted(tierId);
         const mintEvents = await contract.queryFilter(mintFilter, -10000);
 
-        const mintingActivity = mintEvents.map(mintEvent => ({
+        const mintingActivity = mintEvents.map((mintEvent: any) => ({
           minter: mintEvent.args[1],
           amount: Number(mintEvent.args[2]),
           timestamp: Date.now() // In real implementation, get from block
         }));
 
         // Calculate stats
-        const totalMinted = mintingActivity.reduce((sum, mint) => sum + mint.amount, 0);
-        const uniqueHolders = new Set(mintingActivity.map(mint => mint.minter));
+        const totalMinted = mintingActivity.reduce((sum: any, mint) => sum + mint.amount, 0);
+        const uniqueHolders = new Set(mintingActivity.map((mint: any) => mint.minter));
         const holderCount = uniqueHolders.size;
 
         // Estimate revenue (simplified - would need price from tier creation)

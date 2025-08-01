@@ -426,8 +426,8 @@ export class AuditOrchestrator {
     }
     
     // Calculate production readiness
-    let productionReadiness: 'NOT_READY' | 'NEEDS_WORK' | 'READY' | 'EXCELLENT' = 'NOT_READY';
-    if (averageScore >= 90 && failedPhases.length === 0) productionReadiness = 'EXCELLENT';
+    let productionReadiness: 'NOT_READY' | 'NEEDS_WORK' | 'READY' | 'PRODUCTION_READY' = 'NOT_READY';
+    if (averageScore >= 90 && failedPhases.length === 0) productionReadiness = 'PRODUCTION_READY';
     else if (averageScore >= 80 && failedPhases.length <= 1) productionReadiness = 'READY';
     else if (averageScore >= 70) productionReadiness = 'NEEDS_WORK';
     
@@ -447,6 +447,7 @@ export class AuditOrchestrator {
       errors: errors.map(e => ({
         phase: e.phase,
         message: e.error.message,
+        severity: 'HIGH' as const,
         stack: e.error.stack
       })),
       recommendations: allRecommendations,

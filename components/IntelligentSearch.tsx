@@ -10,7 +10,7 @@ interface IntelligentSearchProps extends NavigationProps {
 }
 
 const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
-  onNavigate,
+  onNavigate: _onNavigate,
   placeholder = "Search for content, creators, or topics...",
   showFilters = true,
   onSearchResults
@@ -37,7 +37,7 @@ const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Load search history from localStorage
@@ -182,11 +182,11 @@ const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
       }
 
       // Navigate to search results page
-      onNavigate({ 
-        page: 'search-results', 
-        query: searchQuery,
-        results 
-      });
+      // onNavigate({ 
+      //   page: 'search-results', 
+      //   query: searchQuery,
+      //   results 
+      // });
 
     } catch (err) {
       console.error('Error performing search:', err);

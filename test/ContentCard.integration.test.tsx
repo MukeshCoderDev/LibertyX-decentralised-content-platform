@@ -41,7 +41,7 @@ vi.mock('../components/icons/HeartIcon', () => ({
 
 describe('ContentCard Integration', () => {
   const mockItem = {
-    id: '1',
+    id: 1,
     thumbnail: 'https://example.com/thumb.jpg',
     creatorName: 'Test Creator',
     creatorAvatar: '', // No avatar to test Identicon

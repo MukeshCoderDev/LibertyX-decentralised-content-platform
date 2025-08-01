@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useContractManager } from '../hooks/useContractManager';
-import { Lock, Unlock, Key, Shield, Download, Upload, Eye, EyeOff } from 'lucide-react';
+import { Lock, Unlock, Shield, Download, Upload, Eye, EyeOff } from 'lucide-react';
 
 interface EncryptedContent {
   id: string;
@@ -255,7 +255,7 @@ export const EndToEndEncryption: React.FC<EndToEndEncryptionProps> = ({
     return key;
   };
 
-  const uploadEncryptedData = async (encryptedData: string) => {
+  const uploadEncryptedData = async (_encryptedData: string) => {
     // Mock upload to IPFS/Arweave
     await new Promise(resolve => setTimeout(resolve, 1000));
     return {
@@ -263,7 +263,7 @@ export const EndToEndEncryption: React.FC<EndToEndEncryptionProps> = ({
     };
   };
 
-  const verifyContentAccess = async (content: EncryptedContent): Promise<boolean> => {
+  const verifyContentAccess = async (_content: EncryptedContent): Promise<boolean> => {
     // Mock access verification - would check subscription/NFT status
     return true;
   };

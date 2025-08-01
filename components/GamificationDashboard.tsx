@@ -10,36 +10,36 @@ import { LoadingSpinner } from './shared/LoadingSpinner';
 import { ErrorDisplay } from './shared/ErrorDisplay';
 import { WalletConnectionPrompt } from './shared/WalletConnectionPrompt';
 
-interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  progress: number;
-  maxProgress: number;
-  completed: boolean;
-  reward: {
-    xp: number;
-    tokens: number;
-    badge?: string;
-  };
-}
+// interface Achievement {
+//   id: string;
+//   name: string;
+//   description: string;
+//   icon: string;
+//   rarity: 'common' | 'rare' | 'epic' | 'legendary';
+//   progress: number;
+//   maxProgress: number;
+//   completed: boolean;
+//   reward: {
+//     xp: number;
+//     tokens: number;
+//     badge?: string;
+//   };
+// }
 
-interface UserStats {
-  level: number;
-  xp: number;
-  xpToNextLevel: number;
-  totalXp: number;
-  achievements: Achievement[];
-  badges: string[];
-  referralCount: number;
-  stakingRewards: number;
-  loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
-}
+// interface UserStats {
+//   level: number;
+//   xp: number;
+//   xpToNextLevel: number;
+//   totalXp: number;
+//   achievements: Achievement[];
+//   badges: string[];
+//   referralCount: number;
+//   stakingRewards: number;
+//   loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+// }
 
 export const GamificationDashboard: React.FC = () => {
-  const { account, connectWallet } = useWallet();
+  const { account } = useWallet();
   const {
     userStats,
     achievements,
@@ -52,9 +52,9 @@ export const GamificationDashboard: React.FC = () => {
   } = useGamification();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'rewards' | 'events' | 'goals' | 'community' | 'staking'>('overview');
-  const [seasonalEvents, setSeasonalEvents] = useState([]);
+  const [_seasonalEvents, setSeasonalEvents] = useState<any[]>([]);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
-  const [seasonalEventsLoading, setSeasonalEventsLoading] = useState(false);
+  const [_seasonalEventsLoading, setSeasonalEventsLoading] = useState(false);
 
   useEffect(() => {
     setIsComponentMounted(true);

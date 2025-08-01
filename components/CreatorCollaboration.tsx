@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useContractManager } from '../hooks/useContractManager';
-import { Users, Plus, Share2, DollarSign, Calendar, Check, X } from 'lucide-react';
+import { Users, Plus, DollarSign, Calendar, Check, X } from 'lucide-react';
 
 interface CollaborationProposal {
   id: string;

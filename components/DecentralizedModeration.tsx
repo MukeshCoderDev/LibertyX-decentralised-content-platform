@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useContractManager } from '../hooks/useContractManager';
-import { Shield, Flag, Users, Vote, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Shield, Flag, Vote, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 interface ModerationReport {
   id: string;
@@ -98,15 +98,17 @@ export const DecentralizedModeration: React.FC<DecentralizedModerationProps> = (
   };
 
   const setupEventListeners = () => {
-    listenToEvents('libertyDAO', 'ModerationReportCreated', (event: any) => {
+    listenToEvents('libertyDAO', 'ModerationReportCreated', (_event: any) => {
       loadModerationReports();
     });
 
     listenToEvents('libertyDAO', 'ModerationVoteCast', (event: any) => {
-      if (event.voter.toLowerCase() === account?.toLowerCase()) {
+      if (event?.voter?.toLowerCase() === account?.toLowerCase()) {
         loadUserVotes();
       }
-      updateReportVotes(event.reportId, event.voteType);
+      if (event?.reportId && event?.voteType) {
+        updateReportVotes(event.reportId, event.voteType);
+      }
     });
 
     listenToEvents('libertyDAO', 'ModerationResolved', (event: any) => {
@@ -203,12 +205,12 @@ export const DecentralizedModeration: React.FC<DecentralizedModerationProps> = (
     ];
   };
 
-  const fetchUserVotesFromChain = async (userAddress: string): Promise<ModerationVote[]> => {
+  const fetchUserVotesFromChain = async (_userAddress: string): Promise<ModerationVote[]> => {
     // Mock implementation
     return [];
   };
 
-  const getUserModerationStake = async (userAddress: string): Promise<string> => {
+  const getUserModerationStake = async (_userAddress: string): Promise<string> => {
     // Mock implementation
     return '25.5';
   };

@@ -197,7 +197,7 @@ describe('ESLintAnalyzer', () => {
 
       mockESLint.lintFiles.mockResolvedValue(mockResults);
 
-      // const stats = await analyzer.getRuleStatistics(['src/**/*.ts']);
+      const stats = await analyzer.getRuleStatistics(['src/**/*.ts']);
 
       expect(stats.totalRules).toBe(2);
       expect(stats.enabledRules).toBe(2);
@@ -237,7 +237,7 @@ describe('ESLintAnalyzer', () => {
 
       ESLint.mockImplementation(() => mockComplexityESLint);
 
-      // const complexity = await analyzer.analyzeComplexity(['src/**/*.ts']);
+      const complexity = await analyzer.analyzeComplexity(['src/**/*.ts']);
 
       expect(complexity.averageComplexity).toBe(11.5);
       expect(complexity.maxComplexity).toBe(15);
@@ -350,7 +350,7 @@ describe('ESLintAnalyzer', () => {
       ESLint.mockImplementation(() => mockFixESLint);
       ESLint.outputFixes = vi.fn().mockResolvedValue(undefined);
 
-      // const result = await analyzer.fixIssues(['src/**/*.ts']);
+      const result = await analyzer.fixIssues(['src/**/*.ts']);
 
       expect(result.fixedFiles).toContain('src/test.ts');
       expect(result.unfixableIssues).toHaveLength(1);

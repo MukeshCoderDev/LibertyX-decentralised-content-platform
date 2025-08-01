@@ -22,7 +22,7 @@ export const GovernanceDashboard: React.FC = () => {
     clearError,
   } = useLibertyDAO();
   
-  const { showSuccess, showError, showWarning, NotificationContainer } = useGovernanceNotifications();
+  const { showSuccess, showError, showWarning: _showWarning, NotificationContainer } = useGovernanceNotifications();
 
   // Handle proposal creation with refresh
   const handleCreateProposal = useCallback(async (description: string): Promise<boolean> => {

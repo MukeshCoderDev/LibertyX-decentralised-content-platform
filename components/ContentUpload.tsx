@@ -140,7 +140,7 @@ const ContentUpload: React.FC<ContentUploadProps> = ({ onUploadComplete, onCance
     }
 
     try {
-      const result = await uploadAndRegisterContent(file, metadata, true);
+      const result = await uploadAndRegisterContent(file, { ...metadata, contentType: file.type }, true);
       
       if (result && onUploadComplete) {
         onUploadComplete(result);

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useWallet } from '../lib/WalletProvider';
 import { useRevenueSplitter } from '../hooks/useRevenueSplitter';
 import { TokenBalance } from '../types';
-import { getAllTokens, getTokensByCategory, TOKEN_CATEGORIES, formatTokenAmount, getTokenConfig } from '../lib/tokenConfig';
+import { formatTokenAmount } from '../lib/tokenConfig';
 import TokenSelector from './TokenSelector';
-import Button from './ui/Button';
+// import Button from './ui/Button';
 
 interface EarningsData {
   totalEarnings: TokenBalance[];
@@ -41,7 +41,7 @@ interface EarningsTransaction {
 
 const EarningsDashboard: React.FC = () => {
   const { account, chainId } = useWallet();
-  const { getCreatorEarnings, listenToSplitEvents, loading: revenueLoading } = useRevenueSplitter();
+  const { getCreatorEarnings, listenToSplitEvents, loading: _revenueLoading } = useRevenueSplitter();
   const [earningsData, setEarningsData] = useState<EarningsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTimeframe, setSelectedTimeframe] = useState<'7d' | '30d' | '90d'>('7d');

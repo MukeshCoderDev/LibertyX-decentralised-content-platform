@@ -1,6 +1,6 @@
 // Audit Scoring and Production Readiness Assessment Engine
 
-import { ComprehensiveAuditReport } from '../types/index.js';
+import { ComprehensiveAuditReport, AuditPhase, AuditReport } from '../types/index.js';
 import { AuditError } from '../errors/AuditError.js';
 
 export interface ScoringWeights {
@@ -51,7 +51,7 @@ export class ScoringEngine {
     if (Math.abs(totalWeight - 1.0) > 0.01) {
       throw new AuditError(
         `Scoring weights must sum to 1.0, got ${totalWeight}`,
-        // 'SCORING',
+        'DOCUMENTATION',
         'HIGH',
         'Adjust scoring weights to sum to 1.0'
       );
@@ -451,17 +451,17 @@ export class ScoringEngine {
 
     // Calculate weighted scores for each report
     const reports = [
-      { report: auditReport.codeQualityReport, weight: weights.codeQuality },
-      { report: auditReport.securityReport, weight: weights.security },
-      { report: auditReport.coverageReport, weight: weights.testing },
-      { report: auditReport.performanceReport, weight: weights.performance },
-      { report: auditReport.accessibilityReport, weight: weights.accessibility },
-      { report: auditReport.documentationReport, weight: weights.documentation }
+      { report: auditReport.codeQualityReport, weight: this.weights.codeQuality },
+      { report: auditReport.securityReport, weight: this.weights.security },
+      { report: auditReport.coverageReport, weight: this.weights.testing },
+      { report: auditReport.performanceReport, weight: this.weights.performance },
+      { report: auditReport.accessibilityReport, weight: this.weights.accessibility },
+      { report: auditReport.documentationReport, weight: this.weights.documentation }
     ];
 
     for (const { report, weight } of reports) {
-      if (report && typeof report.overallScore === 'number') {
-        const contribution = report.overallScore * weight;
+      if (report && typeof report.score === 'number') {
+        const contribution = report.score * weight;
         
 
       }

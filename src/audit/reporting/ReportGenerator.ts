@@ -1,6 +1,6 @@
 // Comprehensive Audit Report Generator
 
-import { ComprehensiveAuditReport, AuditReport, AuditPhase } from '../types/index.js';
+import { ComprehensiveAuditReport } from '../types/index.js';
 import { AuditError } from '../errors/AuditError.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -60,7 +60,7 @@ export class ReportGenerator {
     } catch (error) {
       throw new AuditError(
         `Report generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'REPORTING',
+        'DOCUMENTATION',
         'HIGH',
         'Check output directory permissions and disk space'
       );

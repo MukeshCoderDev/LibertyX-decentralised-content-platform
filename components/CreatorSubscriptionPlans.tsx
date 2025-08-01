@@ -26,7 +26,7 @@ const CreatorSubscriptionPlans: React.FC<CreatorSubscriptionPlansProps> = ({
   } = useSubscriptionManager();
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [_subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [showManagement, setShowManagement] = useState(false);
 
   useEffect(() => {

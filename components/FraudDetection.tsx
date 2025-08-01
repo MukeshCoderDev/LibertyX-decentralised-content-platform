@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../lib/WalletProvider';
 import { useContractManager } from '../hooks/useContractManager';
-import { Shield, AlertTriangle, Eye, TrendingUp, Activity, Lock, CheckCircle, XCircle } from 'lucide-react';
+import { Shield, AlertTriangle, Eye, Activity, CheckCircle, XCircle } from 'lucide-react';
 
 interface FraudAlert {
   id: string;

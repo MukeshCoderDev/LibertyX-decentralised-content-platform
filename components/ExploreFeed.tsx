@@ -1,5 +1,5 @@
 import React, { useState, memo, useCallback, useMemo } from 'react';
-import { Page, NavigationProps } from '../types';
+import { NavigationProps } from '../types';
 import ContentCard from './ContentCard';
 import SimpleContentCard from './SimpleContentCard';
 import ErrorBoundary from './ErrorBoundary';
@@ -54,9 +54,7 @@ const ExploreFeed: React.FC<NavigationProps> = memo(({ onNavigate }) => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.creatorName.toLowerCase().includes(query) ||
-        item.title?.toLowerCase().includes(query) ||
-        item.description?.toLowerCase().includes(query) ||
-        item.tags?.some(tag => tag.toLowerCase().includes(query))
+        item.category.toLowerCase().includes(query)
       );
     }
 
@@ -67,7 +65,7 @@ const ExploreFeed: React.FC<NavigationProps> = memo(({ onNavigate }) => {
           case 'Verified':
             return item.isVerified;
           case 'HD':
-            return item.quality === 'HD';
+            return item.isHD;
           case 'VR':
             return item.isVR;
           case 'Solo':
@@ -215,4 +213,4 @@ const ExploreFeed: React.FC<NavigationProps> = memo(({ onNavigate }) => {
 export default ExploreFeed;
 
 // Dummy icon components for filters
-const DummyIcon: React.FC<{className?: string}> = ({className}) => <span className={className}></span>;
+// const DummyIcon: React.FC<{className?: string}> = ({className}) => <span className={className}></span>;

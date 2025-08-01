@@ -2,11 +2,11 @@ import React from 'react';
 import { Page, NavigationProps } from '../types';
 import Logo from './icons/Logo';
 import { useWallet, WalletType } from '../lib/WalletProvider';
-import EthIcon from './icons/EthIcon';
+// import EthIcon from './icons/EthIcon';
 import { SUPPORTED_CHAINS } from '../lib/blockchainConfig';
 import { Chain } from '../lib/web3-types';
 import { StableBalanceDisplay } from './StableBalanceDisplay';
-import { formatToken, shortenAddress } from '../utils/formatters';
+import { shortenAddress } from '../utils/formatters';
 import { NetworkBadge, NetworkStatus } from './ui/NetworkBadge';
 
 interface HeaderProps extends NavigationProps {
@@ -15,7 +15,7 @@ interface HeaderProps extends NavigationProps {
     isWatchPage?: boolean; // New prop to detect watch page
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistrationModal, isWatchPage = false }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistrationModal, isWatchPage: _isWatchPage = false }) => {
     const navItems = [
         { page: Page.Explore, label: 'Explore' },
         { page: Page.Upload, label: 'Upload' },
@@ -26,7 +26,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
         { page: Page.Admin, label: '🎬 Admin' }, // Add admin panel for video management
         { page: Page.Profile, label: 'Wallet Profile' }, // Renamed existing Profile
     ];
-    const { account, chainId, currentChain, balance, isConnected, isConnecting, connect, disconnect, switchNetwork, error } = useWallet();
+    const { account, chainId, currentChain, balance: _balance, isConnected, isConnecting, connect, disconnect, switchNetwork, error } = useWallet();
 
     const getNetworkName = (chain: Chain | undefined | null) => {
         return chain ? chain.name : 'Unknown Network';
@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onOpenRegistra
         await switchNetwork(targetChainId);
     };
 
-    const ethBalance = balance.find(b => b.symbol === (currentChain?.nativeCurrency.symbol || 'ETH'));
+    // const _ethBalance = balance.find(b => b.symbol === (currentChain?.nativeCurrency.symbol || 'ETH'));
 
     return (
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">

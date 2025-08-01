@@ -167,7 +167,10 @@ describe('Audit Infrastructure', () => {
           maxFunctionLength: 20
         },
         testing: {
-          minCoverageThreshold: 90
+          minCoverageThreshold: 90,
+          enableUnitTests: true,
+          enableIntegrationTests: true,
+          enableE2ETests: true
         }
       };
 
