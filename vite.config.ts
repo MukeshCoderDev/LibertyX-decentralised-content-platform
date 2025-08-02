@@ -7,7 +7,9 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-    'require': 'undefined',
+    'require': '(() => { throw new Error("require is not supported in browser environment") })',
+    'module': '{}',
+    'exports': '{}',
   },
   base: './',
   resolve: {
@@ -17,6 +19,8 @@ export default defineConfig({
       buffer: 'buffer',
       process: 'process/browser',
       util: 'util',
+      stream: 'stream-browserify',
+      crypto: 'crypto-browserify',
     }
   },
   build: {
@@ -29,13 +33,15 @@ export default defineConfig({
         }
       },
       external: (id) => {
-        // Don't bundle Node.js built-ins
-        return ['fs', 'path', 'crypto', 'stream', 'util', 'os', 'events'].includes(id);
+        // Don't bundle Node.js built-ins that can't be polyfilled
+        return ['fs', 'path', 'crypto', 'stream', 'os', 'events', 'child_process'].includes(id);
       }
     },
     chunkSizeWarningLimit: 1000,
     commonjsOptions: {
       transformMixedEsModules: true,
+      include: [/node_modules/],
+      exclude: [/node_modules\/(?!(@walletconnect|@coinbase|arweave|ethers))/],
     },
   },
   optimizeDeps: {
