@@ -7,6 +7,7 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'require': 'undefined',
   },
   base: './',
   resolve: {
@@ -26,12 +27,20 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           web3: ['ethers'],
         }
+      },
+      external: (id) => {
+        // Don't bundle Node.js built-ins
+        return ['fs', 'path', 'crypto', 'stream', 'util', 'os', 'events'].includes(id);
       }
     },
     chunkSizeWarningLimit: 1000,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
   },
   optimizeDeps: {
-    include: ['buffer', 'process'],
+    include: ['buffer', 'process', 'react', 'react-dom', 'ethers'],
+    exclude: ['@nomicfoundation/hardhat-toolbox'],
     esbuildOptions: {
       target: 'es2020',
       define: {
