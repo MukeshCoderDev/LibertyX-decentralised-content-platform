@@ -8,6 +8,7 @@ export default defineConfig({
     global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
   },
+  base: './',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),

@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "npm run build:clean && vite build",
     "build:clean": "rm -rf dist",
+    "build:netlify": "vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
