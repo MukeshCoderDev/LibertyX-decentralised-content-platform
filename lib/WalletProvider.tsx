@@ -2,8 +2,21 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { ethers, Signer, Provider } from 'ethers'; // Import Signer and Provider
 import { TokenBalance, Chain, WalletError } from './web3-types';
 import { SUPPORTED_CHAINS, getChainByChainId } from './blockchainConfig';
-import WalletConnectProvider from '@walletconnect/web3-provider';
-import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
+// Import WalletConnect and Coinbase with error handling
+let WalletConnectProvider: any;
+let CoinbaseWalletSDK: any;
+
+try {
+  WalletConnectProvider = require('@walletconnect/web3-provider').default;
+} catch (error) {
+  console.warn('WalletConnect not available:', error);
+}
+
+try {
+  CoinbaseWalletSDK = require('@coinbase/wallet-sdk').default;
+} catch (error) {
+  console.warn('Coinbase Wallet SDK not available:', error);
+}
 
 // Define WalletType enum for supported wallets
 export enum WalletType {
@@ -59,6 +72,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         ethProvider = new ethers.BrowserProvider((window as any).ethereum);
         await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
       } else if (walletType === WalletType.WalletConnect) {
+        if (!WalletConnectProvider) {
+          throw new Error('WalletConnect is not available. Please install the required dependencies.');
+        }
         const wcProvider = new WalletConnectProvider({
           rpc: SUPPORTED_CHAINS.reduce((acc: { [key: number]: string }, chain: Chain) => {
             acc[chain.chainId] = chain.rpcUrl;
@@ -69,6 +85,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         await wcProvider.enable();
         ethProvider = new ethers.BrowserProvider(wcProvider);
       } else if (walletType === WalletType.CoinbaseWallet) {
+        if (!CoinbaseWalletSDK) {
+          throw new Error('Coinbase Wallet SDK is not available. Please install the required dependencies.');
+        }
         const coinbaseWallet = new CoinbaseWalletSDK({
           appName: 'LibertyX',
           appLogoUrl: 'https://example.com/logo.png', // Replace with your app logo

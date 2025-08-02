@@ -7,9 +7,6 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-    'require': '(() => { throw new Error("require is not supported in browser environment") })',
-    'module': '{}',
-    'exports': '{}',
   },
   base: './',
   resolve: {
@@ -21,6 +18,12 @@ export default defineConfig({
       util: 'util',
       stream: 'stream-browserify',
       crypto: 'crypto-browserify',
+      assert: 'assert',
+      url: 'url',
+      http: 'stream-http',
+      https: 'https-browserify',
+      os: 'os-browserify/browser',
+      path: 'path-browserify',
     }
   },
   build: {
@@ -30,22 +33,31 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           web3: ['ethers'],
+          polyfills: ['buffer', 'process', 'stream-browserify', 'crypto-browserify', 'util'],
         }
-      },
-      external: (id) => {
-        // Don't bundle Node.js built-ins that can't be polyfilled
-        return ['fs', 'path', 'crypto', 'stream', 'os', 'events', 'child_process'].includes(id);
       }
     },
     chunkSizeWarningLimit: 1000,
     commonjsOptions: {
       transformMixedEsModules: true,
       include: [/node_modules/],
-      exclude: [/node_modules\/(?!(@walletconnect|@coinbase|arweave|ethers))/],
     },
   },
   optimizeDeps: {
-    include: ['buffer', 'process', 'react', 'react-dom', 'ethers'],
+    include: [
+      'buffer', 
+      'process', 
+      'react', 
+      'react-dom', 
+      'ethers',
+      'stream-browserify',
+      'crypto-browserify',
+      'util',
+      'assert',
+      'url',
+      'os-browserify/browser',
+      'path-browserify'
+    ],
     exclude: ['@nomicfoundation/hardhat-toolbox'],
     esbuildOptions: {
       target: 'es2020',
