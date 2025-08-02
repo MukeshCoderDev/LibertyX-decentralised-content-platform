@@ -9,6 +9,7 @@
     "build": "npm run build:clean && vite build",
     "build:clean": "rm -rf dist",
     "build:netlify": "vite build",
+    "build:contracts": "npx hardhat compile",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
