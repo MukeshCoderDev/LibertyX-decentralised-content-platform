@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 # Hardhat files
 /cache
-/artifacts
+# /artifacts - commented out to include artifacts in repo for deployment
 
 # TypeChain files
 /typechain
