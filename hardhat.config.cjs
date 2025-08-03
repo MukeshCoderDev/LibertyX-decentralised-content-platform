@@ -13,7 +13,7 @@ module.exports = {
       gas: 6000000,
     },
     mainnet: {
-      url: process.env.MAINNET_RPC_URL,
+      url: process.env.MAINNET_RPC_URL || "https://mainnet.infura.io/v3/your-project-id",
       accounts: process.env.MAINNET_PRIVATE_KEY ? [process.env.MAINNET_PRIVATE_KEY] : [],
       chainId: 1,
       gasPrice: 20000000000, // 20 gwei - adjust based on network conditions
